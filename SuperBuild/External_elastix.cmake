@@ -22,18 +22,12 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   endif()
 
   set(${proj}_INSTALL_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
-  #set(${proj}_INSTALL_DIR ${Slicer_INSTALL_THIRDPARTY_LIB_DIR})
-
-  ExternalProject_Message(${proj} "${proj}_SOURCE_DIR:${${proj}_SOURCE_DIR}")
-  ExternalProject_Message(${proj} "Slicer_INSTALL_THIRDPARTY_LIB_DIR = ${Slicer_INSTALL_THIRDPARTY_LIB_DIR}")
-  ExternalProject_Message(${proj} "elastix_INSTALL_DIR = ${elastix_INSTALL_DIR}")
-
-
 
   ExternalProject_Add(${proj}
     # Slicer
     ${${proj}_EP_ARGS}
     SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
+    #SOURCE_SUBDIR src # requires CMake 3.7 or later
     BINARY_DIR ${proj}-build
     INSTALL_DIR ${${proj}_INSTALL_DIR}
     GIT_REPOSITORY "${git_protocol}://github.com/mstaring/elastix.git"
@@ -58,6 +52,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
       -DELASTIX_RUNTIME_DIR:STRING=${Slicer_INSTALL_THIRDPARTY_LIB_DIR}
       -DELASTIX_INSTALL_LIBRARY_DIR:STRING=${Slicer_INSTALL_THIRDPARTY_LIB_DIR}
+      -DUSE_KNNGraphAlphaMutualInformationMetric:BOOL=ON
       #-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
       #-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/${proj}-install
     #--Build step-----------------
