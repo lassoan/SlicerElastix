@@ -5,79 +5,18 @@ from slicer.ScriptedLoadableModule import *
 import logging
 
 #
-# Transformix
+# Elastix
 #
 
-print 'Current SlicerOpenCVSelfTest.py path = '
-scriptPath = os.path.dirname(os.path.abspath(__file__))
-print scriptPath
-
-import subprocess
-subprocess.call
-
-import platform
-if platform.system() == 'Windows':
-  ext = '.exe'
-else:
-  ext = ''
-elastixDir = os.path.abspath(os.path.join(scriptPath, '..'))
-transformixPath = os.path.abspath(os.path.join(scriptPath, '../transformix'+ext))
-elastixPath = os.path.abspath(os.path.join(scriptPath, '../elastix'+ext))
-# in the build directory, this path should exist, but in the installed extension
-# it should be in the python path, so only use the short file name
-if not os.path.isfile(transformixPath):
-  print 'Full path not found: ',transformixPath
-
-import sys, subprocess, os
-my_env = os.environ.copy()
-my_env["PATH"] = elastixDir + os.pathsep + my_env["PATH"]
-
-# process = subprocess.Popen([elastixPath,
-    # '-f', r'c:\D\SE\Transformix\Resources\MRBrainTumor1.nrrd',
-    # '-m', r'c:\D\SE\Transformix\Resources\MRBrainTumor2.nrrd',
-    # '-p', r'c:\D\SE\Transformix\Resources\Par0000affine.txt',
-    # '-p', r'c:\D\SE\Transformix\Resources\Par0000bspline.txt',
-    # '-out', r'c:\D\SE\Transformix\Resources'
-    # ],
-    # env=my_env#,
-    ##stdout=subprocess.PIPE, stderr=subprocess.PIPE
-# )
-
-#process.communicate()
-
-process = subprocess.Popen([transformixPath,
-    '-in', r'c:\D\SE\Transformix\Resources\MRBrainTumor2.nrrd',
-    '-out', r'c:\D\SE\Transformix\Resources\result',
-    '-tp', r'c:\D\SE\Transformix\Resources\TransformParameters.0.txt',
-    '-tp', r'c:\D\SE\Transformix\Resources\TransformParameters.1.txt',
-    '-def', 'all',
-    ],
-    env=my_env#,
-    #stdout=subprocess.PIPE, stderr=subprocess.PIPE
-)
-
-# while True:
-    # slicer.app.processEvents() # force update
-    # out = process.stdout.read(1)
-    # err = process.stderr.read(1)
-    # if err == '' and out == '' and process.poll() != None:
-        # break
-    # if out != '':
-        # sys.stdout.write(out)
-        # sys.stdout.flush()
-    # if err != '':
-        # sys.stdout.write(err)
-        # sys.stdout.flush()
-
-class Transformix(ScriptedLoadableModule):
+class Elastix(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "Transformix" # TODO make this more human readable by adding spaces
-    self.parent.categories = ["Examples"]
+    self.parent.title = "General Registration (Elastix)"
+    self.parent.categories = ["Registration"]
     self.parent.dependencies = []
     self.parent.contributors = ["John Doe (AnyWare Corp.)"] # replace with "Firstname Lastname (Organization)"
     self.parent.helpText = """
@@ -91,10 +30,10 @@ and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR0132
 """ # replace with organization, grant and thanks.
 
 #
-# TransformixWidget
+# ElastixWidget
 #
 
-class TransformixWidget(ScriptedLoadableModuleWidget):
+class ElastixWidget(ScriptedLoadableModuleWidget):
   """Uses ScriptedLoadableModuleWidget base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
@@ -189,16 +128,16 @@ class TransformixWidget(ScriptedLoadableModuleWidget):
     self.applyButton.enabled = self.inputSelector.currentNode() and self.outputSelector.currentNode()
 
   def onApplyButton(self):
-    logic = TransformixLogic()
+    logic = ElastixLogic()
     enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
     imageThreshold = self.imageThresholdSliderWidget.value
     logic.run(self.inputSelector.currentNode(), self.outputSelector.currentNode(), imageThreshold, enableScreenshotsFlag)
 
 #
-# TransformixLogic
+# ElastixLogic
 #
 
-class TransformixLogic(ScriptedLoadableModuleLogic):
+class ElastixLogic(ScriptedLoadableModuleLogic):
   """This class should implement all the actual
   computation done by your module.  The interface
   should be such that other python code can import
@@ -208,19 +147,36 @@ class TransformixLogic(ScriptedLoadableModuleLogic):
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
   """
 
-  def hasImageData(self,volumeNode):
-    """This is an example logic method that
-    returns true if the passed in volume
-    node has valid image data
-    """
-    if not volumeNode:
-      logging.debug('hasImageData failed: no volume node')
-      return False
-    if volumeNode.GetImageData() is None:
-      logging.debug('hasImageData failed: no image data in volume node')
-      return False
-    return True
+  def __init__(self):
+    ScriptedLoadableModuleLogic.__init__(self)
+    import os
+    scriptPath = os.path.dirname(os.path.abspath(__file__))
+    self.elastixDir = os.path.abspath(os.path.join(scriptPath, '..'))
+    
+    import platform
+    executableExt = '.exe' if platform.system() == 'Windows' else ''
+    self.elastixPath = os.path.join(self.elastixDir, 'elastix' + executableExt)
+    self.transformixPath = os.path.join(self.elastixDir, 'transformix' + executableExt)
+    
+    # Verify that required files are found
+    for requiredFile in [self.elastixPath, self.transformixPath]:
+      if not os.path.isfile(requiredFile):
+        logging.error('Required elastix file not found at' + requiredFile)
+    
+    # Create an environment for elastix where executables are added to the path
+    self.elastixEnv = os.environ.copy()
+    self.elastixEnv["PATH"] = self.elastixDir + os.pathsep + self.elastixEnv["PATH"]
+    
+  def startElastix(self, cmdLineArguments):
+    import subprocess
+    #stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    return subprocess.Popen([self.elastixPath] + cmdLineArguments, env=self.elastixEnv)
 
+  def startTransformix(self, cmdLineArguments):
+    import subprocess
+    #stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    return subprocess.Popen([self.transformixPath] + cmdLineArguments, env=self.elastixEnv)
+    
   def isValidInputOutputData(self, inputVolumeNode, outputVolumeNode):
     """Validates if the output is not the same as input
     """
@@ -234,43 +190,6 @@ class TransformixLogic(ScriptedLoadableModuleLogic):
       logging.debug('isValidInputOutputData failed: input and output volume is the same. Create a new volume for output to avoid this error.')
       return False
     return True
-
-  def takeScreenshot(self,name,description,type=-1):
-    # show the message even if not taking a screen shot
-    slicer.util.delayDisplay('Take screenshot: '+description+'.\nResult is available in the Annotations module.', 3000)
-
-    lm = slicer.app.layoutManager()
-    # switch on the type to get the requested window
-    widget = 0
-    if type == slicer.qMRMLScreenShotDialog.FullLayout:
-      # full layout
-      widget = lm.viewport()
-    elif type == slicer.qMRMLScreenShotDialog.ThreeD:
-      # just the 3D window
-      widget = lm.threeDWidget(0).threeDView()
-    elif type == slicer.qMRMLScreenShotDialog.Red:
-      # red slice window
-      widget = lm.sliceWidget("Red")
-    elif type == slicer.qMRMLScreenShotDialog.Yellow:
-      # yellow slice window
-      widget = lm.sliceWidget("Yellow")
-    elif type == slicer.qMRMLScreenShotDialog.Green:
-      # green slice window
-      widget = lm.sliceWidget("Green")
-    else:
-      # default to using the full window
-      widget = slicer.util.mainWindow()
-      # reset the type so that the node is set correctly
-      type = slicer.qMRMLScreenShotDialog.FullLayout
-
-    # grab and convert to vtk image data
-    qpixMap = qt.QPixmap().grabWidget(widget)
-    qimage = qpixMap.toImage()
-    imageData = vtk.vtkImageData()
-    slicer.qMRMLUtils().qImageToVtkImageData(qimage,imageData)
-
-    annotationLogic = slicer.modules.annotations.logic()
-    annotationLogic.CreateSnapShot(name, description, type, 1, imageData)
 
   def run(self, inputVolume, outputVolume, imageThreshold, enableScreenshots=0):
     """
@@ -289,14 +208,14 @@ class TransformixLogic(ScriptedLoadableModuleLogic):
 
     # Capture screenshot
     if enableScreenshots:
-      self.takeScreenshot('TransformixTest-Start','MyScreenshot',-1)
+      self.takeScreenshot('ElastixTest-Start','MyScreenshot',-1)
 
     logging.info('Processing completed')
 
     return True
 
 
-class TransformixTest(ScriptedLoadableModuleTest):
+class ElastixTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
   Uses ScriptedLoadableModuleTest base class, available at:
@@ -312,9 +231,9 @@ class TransformixTest(ScriptedLoadableModuleTest):
     """Run as few or as many tests as needed here.
     """
     self.setUp()
-    self.test_Transformix1()
+    self.test_Elastix1()
 
-  def test_Transformix1(self):
+  def test_Elastix1(self):
     """ Ideally you should have several levels of tests.  At the lowest level
     tests should exercise the functionality of the logic with different inputs
     (both valid and invalid).  At higher levels your tests should emulate the
@@ -330,22 +249,44 @@ class TransformixTest(ScriptedLoadableModuleTest):
     #
     # first, get some data
     #
-    import urllib
-    downloads = (
-        ('http://slicer.kitware.com/midas3/download?items=5767', 'FA.nrrd', slicer.util.loadVolume),
-        )
+    
+    import SampleData
+    sampleDataLogic = SampleData.SampleDataLogic()
+    tumor1 = sampleDataLogic.downloadMRBrainTumor1()
+    tumor2 = sampleDataLogic.downloadMRBrainTumor2()
+    #slicer.util.saveNode(tumor1, filename, ["useCompression": False])
+    
+    logic = ElastixLogic()
+       
+    ep = logic.startElastix([
+      '-f', r'c:\D\SE\Elastix\Resources\MRBrainTumor1.nrrd',
+      '-m', r'c:\D\SE\Elastix\Resources\MRBrainTumor2.nrrd',
+      '-p', r'c:\D\SE\Elastix\Resources\Par0000affine.txt',
+      '-p', r'c:\D\SE\Elastix\Resources\Par0000bspline.txt',
+      '-out', r'c:\D\SE\Elastix\Resources'])
+    ep.communicate()
 
-    for url,name,loader in downloads:
-      filePath = slicer.app.temporaryPath + '/' + name
-      if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-        logging.info('Requesting download %s from %s...\n' % (name, url))
-        urllib.urlretrieve(url, filePath)
-      if loader:
-        logging.info('Loading %s...' % (name,))
-        loader(filePath)
-    self.delayDisplay('Finished with download and loading')
+    tp = logic.startTransformix([
+      '-in', r'c:\D\SE\Elastix\Resources\MRBrainTumor2.nrrd',
+      '-out', r'c:\D\SE\Elastix\Resources\result',
+      '-tp', r'c:\D\SE\Elastix\Resources\TransformParameters.1.txt',
+      '-def', 'all'])
+    tp.communicate()
 
-    volumeNode = slicer.util.getNode(pattern="FA")
-    logic = TransformixLogic()
-    self.assertIsNotNone( logic.hasImageData(volumeNode) )
+
+    # while True:
+    # slicer.app.processEvents() # force update
+    # out = process.stdout.read(1)
+    # err = process.stderr.read(1)
+    # if err == '' and out == '' and process.poll() != None:
+        # break
+    # if out != '':
+        # sys.stdout.write(out)
+        # sys.stdout.flush()
+    # if err != '':
+        # sys.stdout.write(err)
+        # sys.stdout.flush()
+
+    
+    #self.assertIsNotNone( logic.hasImageData(volumeNode) )
     self.delayDisplay('Test passed!')
