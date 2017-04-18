@@ -26,11 +26,12 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   ExternalProject_Message(${proj} "${proj}_SOURCE_DIR:${${proj}_SOURCE_DIR}")
   ExternalProject_Message(${proj} "Slicer_INSTALL_THIRDPARTY_LIB_DIR = ${Slicer_INSTALL_THIRDPARTY_LIB_DIR}")
+  ExternalProject_Message(${proj} "elastix_INSTALL_DIR = ${elastix_INSTALL_DIR}")
 
 
 
   ExternalProject_Add(${proj}
-
+    # Slicer
     ${${proj}_EP_ARGS}
     SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
     BINARY_DIR ${proj}-build
@@ -39,6 +40,8 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     GIT_TAG "617b0729fb6200fce279f7e6388967c6315ddc90"
     #--Configure step-------------  
     CMAKE_CACHE_ARGS
+      -DSubversion_SVN_EXECUTABLE:STRING=${Subversion_SVN_EXECUTABLE}
+      -DGIT_EXECUTABLE:STRING=${GIT_EXECUTABLE}    
       -DITK_DIR:STRING=${ITK_DIR}
       -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
       -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
@@ -50,17 +53,22 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${CMAKE_BINARY_DIR}/${Slicer_THIRDPARTY_BIN_DIR}
       -DCMAKE_LIBRARY_OUTPUT_DIRECTORY:PATH=${CMAKE_BINARY_DIR}/${Slicer_THIRDPARTY_LIB_DIR}
       -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
-      -Delastix_INSTALL_RUNTIME_DIR:STRING=${Slicer_INSTALL_THIRDPARTY_LIB_DIR}
-      -Delastix_INSTALL_LIBRARY_DIR:STRING=${Slicer_INSTALL_THIRDPARTY_LIB_DIR}
-      -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+      -DELASTIX_RUNTIME_DIR:STRING=${Slicer_INSTALL_THIRDPARTY_LIB_DIR}
+      -DELASTIX_INSTALL_LIBRARY_DIR:STRING=${Slicer_INSTALL_THIRDPARTY_LIB_DIR}
+      #-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+      #-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/${proj}-install
     #--Build step-----------------
     #--Install step-----------------
     # Don't perform installation at the end of the build
-    #INSTALL_COMMAND ""
+    INSTALL_COMMAND ""
     DEPENDS
       ${${proj}_DEPENDS}
     )
   set(${proj}_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+  #set(${proj}_DIR ${${proj}_INSTALL_DIR})
+  #if(UNIX)
+  #  set(${proj}_DIR ${${proj}_INSTALL_DIR}/share/elastix)
+  #endif()
 
 else()
   ExternalProject_Add_Empty(${proj} DEPENDS ${${proj}_DEPENDS})

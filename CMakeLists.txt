@@ -39,10 +39,12 @@ add_subdirectory(Transformix)
 ## NEXT_MODULE
 
 #-----------------------------------------------------------------------------
+#  install directory, install project name, install component, and install subdirectory.
 set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${CMAKE_BINARY_DIR};${EXTENSION_NAME};ALL;/")
+#set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${elastix_DIR};elastix;ALL;/")
+#set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${elastix_DIR};elastix;Unspecified;/")
 set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${elastix_DIR};elastix;RuntimeLibraries;/")
-set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${elastix_DIR};elastix;Runtime;/")
+#set(CPACK_INSTALL_CMAKE_PROJECTS "${CPACK_INSTALL_CMAKE_PROJECTS};${elastix_DIR};elastix;Runtime;/")
 MESSAGE(STATUS "CPACK_INSTALL_CMAKE_PROJECTS = ${CPACK_INSTALL_CMAKE_PROJECTS}") 
-
 
 include(${Slicer_EXTENSION_CPACK})

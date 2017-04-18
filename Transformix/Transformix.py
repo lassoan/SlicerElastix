@@ -8,6 +8,67 @@ import logging
 # Transformix
 #
 
+print 'Current SlicerOpenCVSelfTest.py path = '
+scriptPath = os.path.dirname(os.path.abspath(__file__))
+print scriptPath
+
+import subprocess
+subprocess.call
+
+import platform
+if platform.system() == 'Windows':
+  ext = '.exe'
+else:
+  ext = ''
+elastixDir = os.path.abspath(os.path.join(scriptPath, '..'))
+transformixPath = os.path.abspath(os.path.join(scriptPath, '../transformix'+ext))
+elastixPath = os.path.abspath(os.path.join(scriptPath, '../elastix'+ext))
+# in the build directory, this path should exist, but in the installed extension
+# it should be in the python path, so only use the short file name
+if not os.path.isfile(transformixPath):
+  print 'Full path not found: ',transformixPath
+
+import sys, subprocess, os
+my_env = os.environ.copy()
+my_env["PATH"] = elastixDir + os.pathsep + my_env["PATH"]
+
+# process = subprocess.Popen([elastixPath,
+    # '-f', r'c:\D\SE\Transformix\Resources\MRBrainTumor1.nrrd',
+    # '-m', r'c:\D\SE\Transformix\Resources\MRBrainTumor2.nrrd',
+    # '-p', r'c:\D\SE\Transformix\Resources\Par0000affine.txt',
+    # '-p', r'c:\D\SE\Transformix\Resources\Par0000bspline.txt',
+    # '-out', r'c:\D\SE\Transformix\Resources'
+    # ],
+    # env=my_env#,
+    ##stdout=subprocess.PIPE, stderr=subprocess.PIPE
+# )
+
+#process.communicate()
+
+process = subprocess.Popen([transformixPath,
+    '-in', r'c:\D\SE\Transformix\Resources\MRBrainTumor2.nrrd',
+    '-out', r'c:\D\SE\Transformix\Resources\result',
+    '-tp', r'c:\D\SE\Transformix\Resources\TransformParameters.0.txt',
+    '-tp', r'c:\D\SE\Transformix\Resources\TransformParameters.1.txt',
+    '-def', 'all',
+    ],
+    env=my_env#,
+    #stdout=subprocess.PIPE, stderr=subprocess.PIPE
+)
+
+# while True:
+    # slicer.app.processEvents() # force update
+    # out = process.stdout.read(1)
+    # err = process.stderr.read(1)
+    # if err == '' and out == '' and process.poll() != None:
+        # break
+    # if out != '':
+        # sys.stdout.write(out)
+        # sys.stdout.flush()
+    # if err != '':
+        # sys.stdout.write(err)
+        # sys.stdout.flush()
+
 class Transformix(ScriptedLoadableModule):
   """Uses ScriptedLoadableModule base class, available at:
   https://github.com/Slicer/Slicer/blob/master/Base/Python/slicer/ScriptedLoadableModule.py
