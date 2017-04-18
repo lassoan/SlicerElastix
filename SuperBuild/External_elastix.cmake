@@ -38,6 +38,9 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     INSTALL_DIR ${${proj}_INSTALL_DIR}
     GIT_REPOSITORY "${git_protocol}://github.com/mstaring/elastix.git"
     GIT_TAG "617b0729fb6200fce279f7e6388967c6315ddc90"
+    #--Patch step-------------  
+    PATCH_COMMAND ${CMAKE_COMMAND} -Delastix_SRC_DIR=${CMAKE_BINARY_DIR}/${proj}
+      -P ${CMAKE_CURRENT_LIST_DIR}/${proj}_patch.cmake
     #--Configure step-------------  
     CMAKE_CACHE_ARGS
       -DSubversion_SVN_EXECUTABLE:STRING=${Subversion_SVN_EXECUTABLE}
