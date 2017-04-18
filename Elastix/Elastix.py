@@ -43,6 +43,29 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
 
     # Instantiate and connect widgets ...
 
+    # Parameter sets
+    defaultParametersCollapsibleButton = ctk.ctkCollapsibleButton()
+    defaultParametersCollapsibleButton.text = "Parameter set"
+    defaultParametersCollapsibleButton.collapsed = True
+    self.layout.addWidget(defaultParametersCollapsibleButton)
+    defaultParametersLayout = qt.QFormLayout(defaultParametersCollapsibleButton)
+
+    self.parameterNodeSelector = slicer.qMRMLNodeComboBox()
+    self.parameterNodeSelector.nodeTypes = ["vtkMRMLScriptedModuleNode"]
+    self.parameterNodeSelector.addAttribute( "vtkMRMLScriptedModuleNode", "ModuleName", "Elastix" )
+    self.parameterNodeSelector.selectNodeUponCreation = True
+    self.parameterNodeSelector.addEnabled = True
+    self.parameterNodeSelector.renameEnabled = True
+    self.parameterNodeSelector.removeEnabled = True
+    self.parameterNodeSelector.noneEnabled = False
+    self.parameterNodeSelector.showHidden = True
+    self.parameterNodeSelector.showChildNodeTypes = False
+    self.parameterNodeSelector.baseName = "General Registration (Elastix)"
+    self.parameterNodeSelector.setMRMLScene( slicer.mrmlScene )
+    self.parameterNodeSelector.setToolTip( "Pick parameter set" )
+    defaultParametersLayout.addRow("Parameter set: ", self.parameterNodeSelector)
+
+    
     #
     # Parameters Area
     #
