@@ -41,14 +41,16 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
 
+    self.logic = ElastixLogic() 
+    
     # Instantiate and connect widgets ...
 
     # Parameter sets
-    defaultParametersCollapsibleButton = ctk.ctkCollapsibleButton()
-    defaultParametersCollapsibleButton.text = "Parameter set"
-    defaultParametersCollapsibleButton.collapsed = True
-    self.layout.addWidget(defaultParametersCollapsibleButton)
-    defaultParametersLayout = qt.QFormLayout(defaultParametersCollapsibleButton)
+    defaultinputParametersCollapsibleButton = ctk.ctkCollapsibleButton()
+    defaultinputParametersCollapsibleButton.text = "Parameter set"
+    defaultinputParametersCollapsibleButton.collapsed = True
+    self.layout.addWidget(defaultinputParametersCollapsibleButton)
+    defaultParametersLayout = qt.QFormLayout(defaultinputParametersCollapsibleButton)
 
     self.parameterNodeSelector = slicer.qMRMLNodeComboBox()
     self.parameterNodeSelector.nodeTypes = ["vtkMRMLScriptedModuleNode"]
@@ -64,66 +66,97 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.parameterNodeSelector.setMRMLScene( slicer.mrmlScene )
     self.parameterNodeSelector.setToolTip( "Pick parameter set" )
     defaultParametersLayout.addRow("Parameter set: ", self.parameterNodeSelector)
-
-    
+        
     #
-    # Parameters Area
+    # Inputs
     #
-    parametersCollapsibleButton = ctk.ctkCollapsibleButton()
-    parametersCollapsibleButton.text = "Parameters"
-    self.layout.addWidget(parametersCollapsibleButton)
+    inputParametersCollapsibleButton = ctk.ctkCollapsibleButton()
+    inputParametersCollapsibleButton.text = "Inputs"
+    self.layout.addWidget(inputParametersCollapsibleButton)
 
     # Layout within the dummy collapsible button
-    parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
+    inputParametersFormLayout = qt.QFormLayout(inputParametersCollapsibleButton)
 
     #
-    # input volume selector
+    # fixed volume selector
     #
-    self.inputSelector = slicer.qMRMLNodeComboBox()
-    self.inputSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
-    self.inputSelector.selectNodeUponCreation = True
-    self.inputSelector.addEnabled = False
-    self.inputSelector.removeEnabled = False
-    self.inputSelector.noneEnabled = False
-    self.inputSelector.showHidden = False
-    self.inputSelector.showChildNodeTypes = False
-    self.inputSelector.setMRMLScene( slicer.mrmlScene )
-    self.inputSelector.setToolTip( "Pick the input to the algorithm." )
-    parametersFormLayout.addRow("Input Volume: ", self.inputSelector)
+    self.fixedVolumeSelector = slicer.qMRMLNodeComboBox()
+    self.fixedVolumeSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
+    self.fixedVolumeSelector.selectNodeUponCreation = True
+    self.fixedVolumeSelector.addEnabled = False
+    self.fixedVolumeSelector.removeEnabled = False
+    self.fixedVolumeSelector.noneEnabled = False
+    self.fixedVolumeSelector.showHidden = False
+    self.fixedVolumeSelector.showChildNodeTypes = False
+    self.fixedVolumeSelector.setMRMLScene( slicer.mrmlScene )
+    self.fixedVolumeSelector.setToolTip( "The moving volume will be transformed into this image space." )
+    inputParametersFormLayout.addRow("Fixed volume: ", self.fixedVolumeSelector)
+
+    #
+    # moving volume selector
+    #
+    self.movingVolumeSelector = slicer.qMRMLNodeComboBox()
+    self.movingVolumeSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
+    self.movingVolumeSelector.selectNodeUponCreation = True
+    self.movingVolumeSelector.addEnabled = False
+    self.movingVolumeSelector.removeEnabled = False
+    self.movingVolumeSelector.noneEnabled = False
+    self.movingVolumeSelector.showHidden = False
+    self.movingVolumeSelector.showChildNodeTypes = False
+    self.movingVolumeSelector.setMRMLScene( slicer.mrmlScene )
+    self.movingVolumeSelector.setToolTip( "This volume will be transformed into the fixed image space" )
+    inputParametersFormLayout.addRow("Moving volume: ", self.movingVolumeSelector)
+
+    self.registrationPresetSelector = qt.QComboBox()
+    presets = self.logic.getRegistrationPresets()
+    for preset in presets:
+      self.registrationPresetSelector.addItem(preset['name'], preset['id'])
+    ##Read default settings from application settings
+    # settings = qt.QSettings()
+    # displayConfiguration = settings.value('SlicerHeart/DisplayConfiguration', SMALL_SCREEN)
+    # displayConfigurationIndex = self.registrationPresetSelector.findData(displayConfiguration)
+    # self.registrationPresetSelector.setCurrentIndex(displayConfigurationIndex) 
+    inputParametersFormLayout.addRow("Preset: ", self.registrationPresetSelector)
+    
+    #
+    # Outputs
+    #
+    outputParametersCollapsibleButton = ctk.ctkCollapsibleButton()
+    outputParametersCollapsibleButton.text = "Outputs"
+    self.layout.addWidget(outputParametersCollapsibleButton)
+
+    # Layout within the dummy collapsible button
+    outputParametersFormLayout = qt.QFormLayout(outputParametersCollapsibleButton)
+    
+    #
+    # output transform selector
+    #
+    self.outputTransformSelector = slicer.qMRMLNodeComboBox()
+    self.outputTransformSelector.nodeTypes = ["vtkMRMLTransformNode", "vtkMRMLLinearTransformNode"]
+    self.outputTransformSelector.selectNodeUponCreation = True
+    self.outputTransformSelector.addEnabled = True
+    self.outputTransformSelector.removeEnabled = True
+    self.outputTransformSelector.noneEnabled = True
+    self.outputTransformSelector.showHidden = False
+    self.outputTransformSelector.showChildNodeTypes = False
+    self.outputTransformSelector.setMRMLScene( slicer.mrmlScene )
+    self.outputTransformSelector.setToolTip( "(optional) Computed resampling transform that transform nodes from moving volume space to fixed volume space. NOTE: You must set at least one output object (transform and/or output volume)." )
+    outputParametersFormLayout.addRow("Output transform: ", self.outputTransformSelector)
 
     #
     # output volume selector
     #
-    self.outputSelector = slicer.qMRMLNodeComboBox()
-    self.outputSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
-    self.outputSelector.selectNodeUponCreation = True
-    self.outputSelector.addEnabled = True
-    self.outputSelector.removeEnabled = True
-    self.outputSelector.noneEnabled = True
-    self.outputSelector.showHidden = False
-    self.outputSelector.showChildNodeTypes = False
-    self.outputSelector.setMRMLScene( slicer.mrmlScene )
-    self.outputSelector.setToolTip( "Pick the output to the algorithm." )
-    parametersFormLayout.addRow("Output Volume: ", self.outputSelector)
-
-    #
-    # threshold value
-    #
-    self.imageThresholdSliderWidget = ctk.ctkSliderWidget()
-    self.imageThresholdSliderWidget.singleStep = 0.1
-    self.imageThresholdSliderWidget.minimum = -100
-    self.imageThresholdSliderWidget.maximum = 100
-    self.imageThresholdSliderWidget.value = 0.5
-    self.imageThresholdSliderWidget.setToolTip("Set threshold value for computing the output image. Voxels that have intensities lower than this value will set to zero.")
-    parametersFormLayout.addRow("Image threshold", self.imageThresholdSliderWidget)
-
-    #
-    # check box to trigger taking screen shots for later use in tutorials
-    #
-    self.enableScreenshotsFlagCheckBox = qt.QCheckBox()
-    self.enableScreenshotsFlagCheckBox.checked = 0
-    self.enableScreenshotsFlagCheckBox.setToolTip("If checked, take screen shots for tutorials. Use Save Data to write them to disk.")
-    parametersFormLayout.addRow("Enable Screenshots", self.enableScreenshotsFlagCheckBox)
+    self.outputVolumeSelector = slicer.qMRMLNodeComboBox()
+    self.outputVolumeSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
+    self.outputVolumeSelector.selectNodeUponCreation = True
+    self.outputVolumeSelector.addEnabled = True
+    self.outputVolumeSelector.removeEnabled = True
+    self.outputVolumeSelector.noneEnabled = True
+    self.outputVolumeSelector.showHidden = False
+    self.outputVolumeSelector.showChildNodeTypes = False
+    self.outputVolumeSelector.setMRMLScene( slicer.mrmlScene )
+    self.outputVolumeSelector.setToolTip( "(optional) The moving image warped to the fixed image space. NOTE: You must set at least one output object (transform and/or output volume)" )
+    outputParametersFormLayout.addRow("Output volume: ", self.outputVolumeSelector)
 
     #
     # Apply Button
@@ -131,12 +164,12 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.applyButton = qt.QPushButton("Apply")
     self.applyButton.toolTip = "Run the algorithm."
     self.applyButton.enabled = False
-    parametersFormLayout.addRow(self.applyButton)
+    self.layout.addWidget(self.applyButton)
 
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
-    self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-    self.outputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.fixedVolumeSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.outputVolumeSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
 
     # Add vertical spacer
     self.layout.addStretch(1)
@@ -148,13 +181,19 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     pass
 
   def onSelect(self):
-    self.applyButton.enabled = self.inputSelector.currentNode() and self.outputSelector.currentNode()
+    self.applyButton.enabled = self.fixedVolumeSelector.currentNode() and self.outputVolumeSelector.currentNode()
 
   def onApplyButton(self):
-    logic = ElastixLogic()
-    enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
-    imageThreshold = self.imageThresholdSliderWidget.value
-    logic.run(self.inputSelector.currentNode(), self.outputSelector.currentNode(), imageThreshold, enableScreenshotsFlag)
+    self.logic = ElastixLogic()
+                  
+    presets = self.logic.getRegistrationPresets()
+    parameterFileNames = presets[self.registrationPresetSelector.currentIndex]['parameterFiles']
+    parameterFilePaths = []
+    for parameterFileName in parameterFileNames:
+      parameterFilePaths.append(os.path.join(self.logic.registrationParameterFilesDir, parameterFileName))
+      
+    self.logic.registerVolumes(self.fixedVolumeSelector.currentNode(), self.movingVolumeSelector.currentNode(),
+      parameterFilePaths, self.outputTransformSelector.currentNode(), self.outputVolumeSelector.currentNode())
 
 #
 # ElastixLogic
@@ -173,13 +212,14 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
   def __init__(self):
     ScriptedLoadableModuleLogic.__init__(self)
     import os
-    scriptPath = os.path.dirname(os.path.abspath(__file__))
-    self.elastixDir = os.path.abspath(os.path.join(scriptPath, '..'))
+    self.scriptPath = os.path.dirname(os.path.abspath(__file__))
+    self.registrationParameterFilesDir = os.path.abspath(os.path.join(self.scriptPath, 'Resources', 'RegistrationParameters'))
+    self.elastixBinDir = os.path.abspath(os.path.join(self.scriptPath, '../../../bin'))
     
     import platform
     executableExt = '.exe' if platform.system() == 'Windows' else ''
-    self.elastixPath = os.path.join(self.elastixDir, 'elastix' + executableExt)
-    self.transformixPath = os.path.join(self.elastixDir, 'transformix' + executableExt)
+    self.elastixPath = os.path.join(self.elastixBinDir, 'elastix' + executableExt)
+    self.transformixPath = os.path.join(self.elastixBinDir, 'transformix' + executableExt)
     
     # Verify that required files are found
     for requiredFile in [self.elastixPath, self.transformixPath]:
@@ -188,8 +228,15 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     
     # Create an environment for elastix where executables are added to the path
     self.elastixEnv = os.environ.copy()
-    self.elastixEnv["PATH"] = self.elastixDir + os.pathsep + self.elastixEnv["PATH"]
+    self.elastixEnv["PATH"] = self.elastixBinDir + os.pathsep + self.elastixEnv["PATH"]
     
+  def getRegistrationPresets(self):
+    presets = []
+    presets.append({ 'id': 'par000', 'name': 'Default', 'modality': 'all', 'content': 'all', 'parameterFiles': ['Par0000affine.txt', 'Par0000bspline.txt'] })
+    presets.append({ 'id': 'par001', 'name': 'Brain MR T1', 'modality': '3D MR T1, monomodal', 'content': 'brain', 'parameterFiles': ['Par0001affine.txt', 'Par0001bspline.txt']})
+    presets.append({ 'id': 'par002', 'name': 'Prostate MR', 'modality': '3D MR BFFE, monomodal', 'content': 'prostate', 'parameterFiles': ['Par0002affine.txt', 'Par0002bspline.txt']})
+    return presets
+
   def startElastix(self, cmdLineArguments):
     import subprocess
     #stdout=subprocess.PIPE, stderr=subprocess.PIPE
@@ -199,6 +246,73 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     import subprocess
     #stdout=subprocess.PIPE, stderr=subprocess.PIPE
     return subprocess.Popen([self.transformixPath] + cmdLineArguments, env=self.elastixEnv)
+  
+  def tempDirectory(self):
+    import qt, slicer
+    tempDir = qt.QDir(slicer.app.temporaryPath)
+    tempDirName = qt.QDateTime().currentDateTime().toString("yyyy-MM-dd_hh+mm+ss.zzz")
+    fileInfo = qt.QFileInfo(qt.QDir(tempDir), tempDirName)
+    dirPath = fileInfo.absoluteFilePath()
+    qt.QDir().mkpath(dirPath)
+    return dirPath 
+  
+  def registerVolumes(self, fixedVolumeNode, movingVolumeNode, parameterFiles, outputTransformNode, outputVolumeNode):
+    tempDir = self.tempDirectory() # slicer.util.tempDirectory() has a bug, does not append datetime
+    logging.info('registerVolumes started - working directory: '+tempDir)
+    import shutil
+
+    # Write inputs
+    inputDir = os.path.join(tempDir, 'input')
+    qt.QDir().mkpath(inputDir)
+    fixedVolumePath = os.path.join(inputDir, "fixed.mha")
+    movingVolumePath = os.path.join(inputDir, "moving.mha")
+    slicer.util.saveNode(fixedVolumeNode, fixedVolumePath, {"useCompression": False})
+    slicer.util.saveNode(movingVolumeNode, movingVolumePath, {"useCompression": False})
+
+    # Run registration
+    resultTransformDir = os.path.join(tempDir, 'result-transform')
+    qt.QDir().mkpath(resultTransformDir)    
+    inputParamsElastix = ['-f', fixedVolumePath, '-m', movingVolumePath, '-out', resultTransformDir]
+    for parameterFile in parameterFiles:
+      inputParamsElastix.append('-p')
+      inputParamsElastix.append(parameterFile)
+    ep = self.startElastix(inputParamsElastix)
+    ep.communicate()
+
+    # Resample
+    resultResampleDir = os.path.join(tempDir, 'result-resample')
+    qt.QDir().mkpath(resultResampleDir)
+    inputParamsTransformix = ['-in', movingVolumePath, '-out', resultResampleDir]
+    if outputTransformNode:
+      inputParamsTransformix += ['-def', 'all']
+    if outputVolumeNode:
+      inputParamsTransformix += ['-tp', resultTransformDir+'/TransformParameters.'+str(len(parameterFiles)-1)+'.txt']
+    tp = self.startTransformix(inputParamsTransformix)
+    tp.communicate()
+
+    if outputVolumeNode:
+      outputVolumePath = os.path.join(resultResampleDir, "result.mhd")
+      [success, loadedOutputVolumeNode] = slicer.util.loadVolume(outputVolumePath, returnNode = True)
+      if success:
+        outputVolumeNode.SetAndObserveImageData(loadedOutputVolumeNode.GetImageData())
+        ijkToRas = vtk.vtkMatrix4x4()
+        loadedOutputVolumeNode.GetIJKToRASMatrix(ijkToRas)
+        outputVolumeNode.SetIJKToRASMatrix()
+        slicer.mrmlScene.RemoveNode(loadedOutputVolumeNode)
+
+    if outputTransformNode:
+      outputTransformPath = os.path.join(resultResampleDir, "deformationField.mhd")
+      [success, loadedOutputTransformNode] = slicer.util.loadTransform(outputTransformPath, returnNode = True)
+      if success:
+        outputTransformNode.SetAndObserveImageData(loadedOutputVolumeNode.GetImageData())
+        ijkToRas = vtk.vtkMatrix4x4()
+        loadedOutputVolumeNode.GetIJKToRASMatrix(ijkToRas)
+        outputTransformNode.SetIJKToRASMatrix()
+        slicer.mrmlScene.RemoveNode(loadedOutputVolumeNode)
+
+        
+    # remove temp directory
+    # shutil.rmtree(tempDir) 
     
   def isValidInputOutputData(self, inputVolumeNode, outputVolumeNode):
     """Validates if the output is not the same as input
@@ -277,7 +391,7 @@ class ElastixTest(ScriptedLoadableModuleTest):
     sampleDataLogic = SampleData.SampleDataLogic()
     tumor1 = sampleDataLogic.downloadMRBrainTumor1()
     tumor2 = sampleDataLogic.downloadMRBrainTumor2()
-    #slicer.util.saveNode(tumor1, filename, ["useCompression": False])
+    #
     
     logic = ElastixLogic()
        
