@@ -3,12 +3,6 @@
 (FixedInternalImagePixelType "float")
 (MovingInternalImagePixelType "float")
 
-(FixedImageDimension 3)
-(MovingImageDimension 3)
-
-(UseDirectionCosines "true")
-
-
 // **************** Main Components **************************
 
 (Registration "MultiResolutionRegistration")

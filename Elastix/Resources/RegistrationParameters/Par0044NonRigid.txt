@@ -2,9 +2,7 @@
 
 //ImageTypes
 (FixedInternalImagePixelType "float")
-(FixedImageDimension 3)
 (MovingInternalImagePixelType "float")
-(MovingImageDimension 3)
 
 //Components
 (Registration "MultiMetricMultiResolutionRegistration")
@@ -130,5 +128,3 @@
 (DefaultPixelValue 0.000000)
 
 (MaximumStepLength 0.7)
-
-(UseDirectionCosines "true")

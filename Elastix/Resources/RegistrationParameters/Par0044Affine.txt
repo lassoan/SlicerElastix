@@ -3,8 +3,6 @@
 //ImageTypes
 (FixedInternalImagePixelType "float")
 (MovingInternalImagePixelType "float")
-(FixedImageDimension 3)
-(MovingImageDimension 3)
 
 //Components
 (Registration "MultiResolutionRegistration")
@@ -112,8 +110,5 @@
 
 //SP: Param_alpha in each resolution level. a_k = a/(A+k+1)^alpha
 (SP_alpha 1.0 ) 
-
-//Use direction cosine
-(UseDirectionCosines "true")
 
 

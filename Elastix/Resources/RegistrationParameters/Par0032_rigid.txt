@@ -1,10 +1,6 @@
 (FixedInternalImagePixelType "short")
 (MovingInternalImagePixelType "short")
 
-(FixedImageDimension 3)
-(MovingImageDimension 3)
-(UseDirectionCosines "true")
-
 // **************** Main Components **************************
 
 (Registration "MultiResolutionRegistration")

@@ -1,10 +1,7 @@
 // ********** Image Types
 
 (FixedInternalImagePixelType "float")
-(FixedImageDimension 3)
 (MovingInternalImagePixelType "float")
-(MovingImageDimension 3)
-
 
 // ********** Components
 
@@ -56,7 +53,6 @@
 (WriteResultImage "true")
 (ShowExactMetricValue "false")
 (ErodeMask "false")
-(UseDirectionCosines "true")
 
 
 // ********** ImageSampler
