@@ -559,7 +559,7 @@ RegistrationPresets_Publications = 4
 RegistrationPresets_ParameterFilenames = 5
 
 RegistrationPresets = [
-[ "default0", "generic", "all", "'default' parameter files for starting elastix users", "", ["parameters_Rigid.txt", "parameters_BSpline.txt"]],
+[ "default0", "generic", "all", "'default' parameter files for starting elastix users", "", ["Parameters_Rigid.txt", "Parameters_BSpline.txt"]],
 [ "par0000", "3D MR T1, monomodal", "brain", "interpatient; affine + B-spline transformation; mutual information", "van der Lijn (2009) - Cerebellum Segmentation in MRI Using Atlas Registration and Local Multi-Scale Image Descriptors", ["Par0000affine.txt", "Par0000bspline.txt"]],
 [ "par0001", "3D MR BFFE, monomodal", "prostate", "interpatient; several transformation models; localised mutual information", "Klein & Staring (2010) - elastix: a toolbox for intensity-based medical image registration", [ "Par0001translation.txt", "Par0001bspline16.txt"]],
 [ "par0002", "3D MR T1 & PET", "brain", "intrapatient; translation; mutual information", "Klein & Staring (2010) - elastix: a toolbox for intensity-based medical image registration", ["Par0002.fs.MI.rigid.RandomCoordinate.txt"]],
