@@ -11,6 +11,7 @@ set(MODULE_PYTHON_RESOURCES
   )
   
 set(REGISTRATION_PARAMETER_FILES
+  ElastixParameterSetDatabase.xml
   Bsplines_parameter-file.txt
   Deformable.txt
   Par0000affine.txt
