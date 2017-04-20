@@ -173,18 +173,18 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.showDetailedLogDuringExecutionCheckBox.setToolTip("Show detailed log during registration.")
     advancedFormLayout.addRow("Show detailed log during registration:", self.showDetailedLogDuringExecutionCheckBox)
 
-    self.deleteTemporaryFilesCheckBox = qt.QCheckBox(" ")
-    self.deleteTemporaryFilesCheckBox.checked = True
-    self.deleteTemporaryFilesCheckBox.setToolTip("Delete temporary files (inputs, computed outputs, logs) after the registration is completed.")
+    self.keepTemporaryFilesCheckBox = qt.QCheckBox(" ")
+    self.keepTemporaryFilesCheckBox.checked = False
+    self.keepTemporaryFilesCheckBox.setToolTip("Keep temporary files (inputs, computed outputs, logs) after the registration is completed.")
 
     self.showTemporaryFilesFolderButton = qt.QPushButton("Show temp folder")
     self.showTemporaryFilesFolderButton.toolTip = "Open the folder where temporary files are stored."
     self.showTemporaryFilesFolderButton.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
 
     hbox = qt.QHBoxLayout()
-    hbox.addWidget(self.deleteTemporaryFilesCheckBox)
+    hbox.addWidget(self.keepTemporaryFilesCheckBox)
     hbox.addWidget(self.showTemporaryFilesFolderButton)
-    advancedFormLayout.addRow("Delete temporary files:", hbox)
+    advancedFormLayout.addRow("Keep temporary files:", hbox)
 
     customElastixBinDir = self.logic.getCustomElastixBinDir()
     self.customElastixBinDirSelector = ctk.ctkPathLineEdit()
@@ -260,7 +260,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
       if self.customElastixBinDirSelector.currentPath:
         self.logic.setCustomElastixBinDir(self.customElastixBinDirSelector.currentPath)
 
-      self.logic.deleteTemporaryFiles = self.deleteTemporaryFilesCheckBox.checked
+      self.logic.deleteTemporaryFiles = not self.keepTemporaryFilesCheckBox.checked
       self.logic.logStandardOutput = self.showDetailedLogDuringExecutionCheckBox.checked
 
       parameterFilenames = RegistrationPresets[self.registrationPresetSelector.currentIndex][RegistrationPresets_ParameterFilenames]
