@@ -10,6 +10,15 @@
       <File Name="Parameters_BSpline.txt" />
     </ParameterFiles>
   </ParameterSet>
+  <ParameterSet id="default0"
+    modality="generic rigid"
+    content="all"
+    description="'default' parameter files for starting elastix users"
+    publications="">
+    <ParameterFiles>
+      <File Name="Parameters_Rigid.txt" />
+    </ParameterFiles>
+  </ParameterSet>
   <ParameterSet id="par0000"
     modality="3D MR T1, monomodal"
     content="brain"
