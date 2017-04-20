@@ -21,3 +21,15 @@ foreach(cmakefile ${runtime_libraries_cmakelists})
     message(STATUS "elastix: Already patched ${cmakefile}")
   endif()
 endforeach()
+
+# Make directory name shorter to allow Windows builds
+if (WIN32)
+  if (EXISTS ${elastix_SRC_DIR}/src/Components/ResampleInterpolators/ReducedDimensionBSplineResampleInterpolator)
+    message(STATUS "elastix: Patching ReducedDimensionBSplineResampleInterpolator")
+    file(RENAME
+      ${elastix_SRC_DIR}/src/Components/ResampleInterpolators/ReducedDimensionBSplineResampleInterpolator
+      ${elastix_SRC_DIR}/src/Components/ResampleInterpolators/RDBSplineResampleInterpolator)
+  else()
+    message(STATUS "elastix: Already patched ReducedDimensionBSplineResampleInterpolator")
+  endif()
+endif (WIN32)
