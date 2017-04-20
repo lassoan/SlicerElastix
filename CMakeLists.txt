@@ -4,12 +4,12 @@ project(SlicerElastix)
 
 #-----------------------------------------------------------------------------
 # Extension meta-information
-set(EXTENSION_HOMEPAGE "http://slicer.org/slicerWiki/index.php/Documentation/Nightly/Extensions/SlicerElastix")
+set(EXTENSION_HOMEPAGE "https://github.com/lassoan/SlicerElastix")
 set(EXTENSION_CATEGORY "Registration")
 set(EXTENSION_CONTRIBUTORS "Andras Lasso (PerkLab, Queen's University)")
-set(EXTENSION_DESCRIPTION "This extension makes available Elastix medical image registration toolkit (http://elastix.isi.uu.nl/) available in Slicer.")
-set(EXTENSION_ICONURL "http://www.example.com/Slicer/Extensions/SlicerElastix.png")
-set(EXTENSION_SCREENSHOTURLS "http://www.example.com/Slicer/Extensions/SlicerElastix/Screenshots/1.png")
+set(EXTENSION_DESCRIPTION "This extension makes available Elastix medical image registration toolbox (http://elastix.isi.uu.nl/) available in Slicer.")
+set(EXTENSION_ICONURL "https://raw.githubusercontent.com/lassoan/SlicerElastix/master/SlicerElastix.png")
+set(EXTENSION_SCREENSHOTURLS "https://raw.githubusercontent.com/lassoan/SlicerElastix/master/Screenshot01.png")
 set(EXTENSION_DEPENDS "NA") # Specified as a space separated string, a list or 'NA' if any
 set(EXTENSION_BUILD_SUBDIRECTORY inner-build)
 

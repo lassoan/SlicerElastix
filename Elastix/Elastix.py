@@ -168,12 +168,16 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.layout.addWidget(self.advancedCollapsibleButton)
     advancedFormLayout = qt.QFormLayout(self.advancedCollapsibleButton)
 
+    self.showDetailedLogDuringExecutionCheckBox = qt.QCheckBox(" ")
+    self.showDetailedLogDuringExecutionCheckBox.checked = False
+    self.showDetailedLogDuringExecutionCheckBox.setToolTip("Show detailed log during registration.")
+    advancedFormLayout.addRow("Show detailed log during registration:", self.showDetailedLogDuringExecutionCheckBox)
 
     self.deleteTemporaryFilesCheckBox = qt.QCheckBox(" ")
     self.deleteTemporaryFilesCheckBox.checked = True
     self.deleteTemporaryFilesCheckBox.setToolTip("Delete temporary files (inputs, computed outputs, logs) after the registration is completed.")
 
-    self.showTemporaryFilesFolderButton = qt.QPushButton("Show folder")
+    self.showTemporaryFilesFolderButton = qt.QPushButton("Show temp folder")
     self.showTemporaryFilesFolderButton.toolTip = "Open the folder where temporary files are stored."
     self.showTemporaryFilesFolderButton.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
 
@@ -243,9 +247,12 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     if self.registrationInProgress:
       self.registrationInProgress = False
       self.logic.abortRequested = True
+      self.applyButton.text = "Cancelling..."
+      self.applyButton.enabled = False
       return
 
     self.registrationInProgress = True
+    self.applyButton.text = "Cancel"
     self.statusLabel.plainText = ''
     slicer.app.setOverrideCursor(qt.Qt.WaitCursor)
     try:
@@ -254,17 +261,20 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
         self.logic.setCustomElastixBinDir(self.customElastixBinDirSelector.currentPath)
 
       self.logic.deleteTemporaryFiles = self.deleteTemporaryFilesCheckBox.checked
+      self.logic.logStandardOutput = self.showDetailedLogDuringExecutionCheckBox.checked
 
       parameterFilenames = RegistrationPresets[self.registrationPresetSelector.currentIndex][RegistrationPresets_ParameterFilenames]
 
       self.logic.registerVolumes(self.fixedVolumeSelector.currentNode(), self.movingVolumeSelector.currentNode(),
         parameterFilenames, self.outputTransformSelector.currentNode(), self.outputVolumeSelector.currentNode())
     except Exception as e:
-      self.addLog("Unexpected error: {0}".format(e.message))
+      print e
+      self.addLog("Error: {0}".format(e.message))
       import traceback
       traceback.print_exc()
     finally:
       slicer.app.restoreOverrideCursor()
+      self.onSelect() # restores default Apply button state
 
   def addLog(self, text):
     """Append text to log window
@@ -291,6 +301,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     self.logCallback = None
     self.abortRequested = False
     self.deleteTemporaryFiles = True
+    self.logStandardOutput = False
     self.customElastixBinDirSettingsKey = 'Elastix/CustomElastixPath'
     import os
     self.scriptPath = os.path.dirname(os.path.abspath(__file__))
@@ -370,31 +381,42 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     return presets
 
   def startElastix(self, cmdLineArguments):
+    self.addLog("Register volumes...")
     import subprocess
-    #stdout=subprocess.PIPE, stderr=subprocess.PIPE
     executableFilePath = os.path.join(self.getElastixBinDir(),self.elastixFilename)
-    self.addLog("Start "+executableFilePath+": "+repr(cmdLineArguments))
+    logging.info("Register volumes using: "+executableFilePath+": "+repr(cmdLineArguments))
     return subprocess.Popen([executableFilePath] + cmdLineArguments, env=self.getElastixEnv(),
                             stdout=subprocess.PIPE, universal_newlines=True)
 
   def startTransformix(self, cmdLineArguments):
+    self.addLog("Generate output...")
     import subprocess
-    #stdout=subprocess.PIPE, stderr=subprocess.PIPE
     executableFilePath = os.path.join(self.getElastixBinDir(), self.transformixFilename)
-    self.addLog("Start " + executableFilePath + ": " + repr(cmdLineArguments))
+    logging.info("Generate output using: " + executableFilePath + ": " + repr(cmdLineArguments))
     return subprocess.Popen([os.path.join(self.getElastixBinDir(),self.transformixFilename)] + cmdLineArguments, env=self.getElastixEnv(),
                             stdout=subprocess.PIPE, universal_newlines = True)
 
   def logProcessOutput(self, process):
+    # save process output (if not logged) so that it can be displayed in case of an error
+    processOutput = ''
     import subprocess
     for stdout_line in iter(process.stdout.readline, ""):
-      self.addLog(stdout_line.rstrip())
+      if self.logStandardOutput:
+        self.addLog(stdout_line.rstrip())
+      else:
+        processOutput += stdout_line.rstrip() + '\n'
+      slicer.app.processEvents()  # give a chance to click Cancel button
       if self.abortRequested:
         process.kill()
     process.stdout.close()
     return_code = process.wait()
     if return_code:
-      raise subprocess.CalledProcessError(return_code, "User requested cancel" if self.abortRequested else "Unknown error")
+      if self.abortRequested:
+        raise ValueError("User requested cancel.")
+      else:
+        if processOutput:
+          self.addLog(processOutput)
+        raise subprocess.CalledProcessError(return_code, "elastix")
 
   def getTempDirectoryBase(self):
     tempDir = qt.QDir(slicer.app.temporaryPath)
@@ -475,6 +497,8 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     if self.deleteTemporaryFiles:
       import shutil
       shutil.rmtree(tempDir)
+      
+    self.addLog("Registration is completed")
 
 class ElastixTest(ScriptedLoadableModuleTest):
   """
@@ -515,41 +539,15 @@ class ElastixTest(ScriptedLoadableModuleTest):
     sampleDataLogic = SampleData.SampleDataLogic()
     tumor1 = sampleDataLogic.downloadMRBrainTumor1()
     tumor2 = sampleDataLogic.downloadMRBrainTumor2()
-    #
+
+    outputVolume = slicer.vtkMRMLScalarVolumeNode()
+    slicer.mrmlScene.AddNode(outputVolume)
+    outputVolume.CreateDefaultDisplayNodes()
     
-    logic = ElastixLogic()
-       
-    ep = logic.startElastix([
-      '-f', r'c:\D\SE\Elastix\Resources\MRBrainTumor1.nrrd',
-      '-m', r'c:\D\SE\Elastix\Resources\MRBrainTumor2.nrrd',
-      '-p', r'c:\D\SE\Elastix\Resources\Par0000affine.txt',
-      '-p', r'c:\D\SE\Elastix\Resources\Par0000bspline.txt',
-      '-out', r'c:\D\SE\Elastix\Resources'])
-    ep.communicate()
-
-    tp = logic.startTransformix([
-      '-in', r'c:\D\SE\Elastix\Resources\MRBrainTumor2.nrrd',
-      '-out', r'c:\D\SE\Elastix\Resources\result',
-      '-tp', r'c:\D\SE\Elastix\Resources\TransformParameters.1.txt',
-      '-def', 'all'])
-    tp.communicate()
-
-
-    # while True:
-    # slicer.app.processEvents() # force update
-    # out = process.stdout.read(1)
-    # err = process.stderr.read(1)
-    # if err == '' and out == '' and process.poll() != None:
-        # break
-    # if out != '':
-        # sys.stdout.write(out)
-        # sys.stdout.flush()
-    # if err != '':
-        # sys.stdout.write(err)
-        # sys.stdout.flush()
-
+    logic = ElastixLogic()       
+    parameterFilenames = RegistrationPresets[0][RegistrationPresets_ParameterFilenames]
+    logic.registerVolumes(tumor1, tumor2, parameterFilenames, None, outputVolume)
     
-    #self.assertIsNotNone( logic.hasImageData(volumeNode) )
     self.delayDisplay('Test passed!')
 
 
@@ -592,7 +590,7 @@ RegistrationPresets = [
 #[ "par0027", "3D CT, 3D MR, multimodal, multi sequence", "head and neck", "intra patient; rigid + B-spline transformation; mutual information, multi parametric mutual information", "Fortunati (2014),  Feasibility of Multimodal Deformable Registration for Head and Neck Tumor Treatment Planning"],
 #[ "par0028", "3D CT, monomodal", "head and neck", "intra patient; rigid + B-spline transformation; several B-pline knot spacings; synthesized head and neck phantoms", "Brouwer (2014),  The effects of CT image characteristics and knot spacing on the spatial accuracy of B-spline deformable image registration in the head and neck geometry"],
 #[ "par0029", "3D diffusion-weighted MR images (DW-MRI)", "abdomen", "intra patient; B-spline transformation; mutual information", "Guyader (2014) - Influence of image registration on apparent diffusion coefficient images computed from free-breathing diffusion MR images of the abdomen"],
-[ "par0030", "3D T1 and T1 fat-suppressed gadolinium-enhanced extremity MR images", "wrist", "inter patient; Affine + B-spline transformation; normalized cross correlation. intra patient; Rigid transformation; mutual information", "Roex - MSc thesis: Early Detection of Rheumatoid Arthritis using extremity MRI: Quantification of Bone Marrow Edema in the Carpal bones", ["Parameters0030_Euler.txt", "Parameters0030_Affine.txt", "Parameters0030_Bspline.txt"]],
+[ "par0030", "3D T1 fat-suppressed Ga-enhanced extremity MR", "wrist", "inter patient; Affine + B-spline transformation; normalized cross correlation. intra patient; Rigid transformation; mutual information", "Roex - MSc thesis: Early Detection of Rheumatoid Arthritis using extremity MRI: Quantification of Bone Marrow Edema in the Carpal bones", ["Parameters0030_Euler.txt", "Parameters0030_Affine.txt", "Parameters0030_Bspline.txt"]],
 #[ "par0031", "3D CT, monomodal", "thorax", "intrapatient; regional-independent B-spline transformation; sliding surface penalty", "Berendsen (2014), Registration of organs with sliding interfaces and changing topologies"],
 [ "par0032", "3D DCE-MRI", "breast", "intrapatient; rigid + B-spline transformation; mutual information", "Gubern-Merida (2015), Automated localization of breast cancer in DCE-MRI", ["Par0032_rigid.txt", "Par0032_bsplines.txt"]],
 [ "par0033", "3D MR", "mouse brain", "inter-subject; rigid + affine + B-spline transformation; mutual information metric with a transform bending energy penalty", "Bink (2016), Kogelman (2016)", ["Par0033rigid.txt", "Par0033similarity.txt", "Par0033bspline.txt"]],
