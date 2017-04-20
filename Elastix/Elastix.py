@@ -19,14 +19,11 @@ class Elastix(ScriptedLoadableModule):
     self.parent.categories = ["Registration"]
     self.parent.dependencies = []
     self.parent.contributors = ["John Doe (AnyWare Corp.)"] # replace with "Firstname Lastname (Organization)"
-    self.parent.helpText = """
-This is an example of scripted loadable module bundled in an extension.
-It performs a simple thresholding on the input volume and optionally captures a screenshot.
-"""
-    self.parent.helpText += self.getDefaultModuleDocumentationLink()
+    self.parent.helpText = """Align volumes based on image content using <a href="http://elastix.isi.uu.nl/">Elastix medical image registration toolbox</a>."""
+    #self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """
-This file was originally developed by Jean-Christophe Fillion-Robin, Kitware Inc.
-and Steve Pieper, Isomics, Inc. and was partially funded by NIH grant 3P41RR013218-12S1.
+This module was originally developed by Andras Lasso (Queen's University, PerkLab)
+to serve as a frontend to <a href="http://elastix.isi.uu.nl/">Elastix medical image registration toolbox</a>.
 """ # replace with organization, grant and thanks.
 
 #
@@ -44,7 +41,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.logic = ElastixLogic()
     self.logic.logCallback = self.addLog
     self.registrationInProgress = False
-    
+
     # Instantiate and connect widgets ...
 
     # Parameter sets
@@ -68,7 +65,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.parameterNodeSelector.setMRMLScene( slicer.mrmlScene )
     self.parameterNodeSelector.setToolTip( "Pick parameter set" )
     defaultParametersLayout.addRow("Parameter set: ", self.parameterNodeSelector)
-        
+
     #
     # Inputs
     #
@@ -113,7 +110,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     for preset in self.logic.getRegistrationPresets():
       self.registrationPresetSelector.addItem("{0} ({1})".format(preset[RegistrationPresets_Modality], preset[RegistrationPresets_Content]))
     inputParametersFormLayout.addRow("Preset: ", self.registrationPresetSelector)
-    
+
     #
     # Outputs
     #
@@ -181,6 +178,11 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     hbox.addWidget(self.showTemporaryFilesFolderButton)
     advancedFormLayout.addRow("Keep temporary files:", hbox)
 
+    self.showRegistrationParametersDatabaseFolderButton = qt.QPushButton("Show database folder")
+    self.showRegistrationParametersDatabaseFolderButton.toolTip = "Open the folder where temporary files are stored."
+    self.showRegistrationParametersDatabaseFolderButton.setSizePolicy(qt.QSizePolicy.MinimumExpanding, qt.QSizePolicy.Preferred)
+    advancedFormLayout.addRow("Registration presets:", self.showRegistrationParametersDatabaseFolderButton)
+
     customElastixBinDir = self.logic.getCustomElastixBinDir()
     self.customElastixBinDirSelector = ctk.ctkPathLineEdit()
     self.customElastixBinDirSelector.filters = ctk.ctkPathLineEdit.Dirs
@@ -189,7 +191,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.customElastixBinDirSelector.setToolTip("Set bin directory of an Elastix installation (where elastix executable is located). "
       "If value is empty then default elastix (bundled with SlicerElastix extension) will be used.")
     advancedFormLayout.addRow("Custom Elastix toolbox location:", self.customElastixBinDirSelector)
-    
+
     #
     # Apply Button
     #
@@ -206,6 +208,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
     self.showTemporaryFilesFolderButton.connect('clicked(bool)', self.onShowTemporaryFilesFolder)
+    self.showRegistrationParametersDatabaseFolderButton.connect('clicked(bool)', self.onShowRegistrationParametersDatabaseFolder)
     self.fixedVolumeSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.movingVolumeSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.outputVolumeSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
@@ -237,6 +240,9 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
 
   def onShowTemporaryFilesFolder(self):
     qt.QDesktopServices().openUrl(qt.QUrl("file:///" + self.logic.getTempDirectoryBase(), qt.QUrl.TolerantMode));
+
+  def onShowRegistrationParametersDatabaseFolder(self):
+    qt.QDesktopServices().openUrl(qt.QUrl("file:///" + self.logic.registrationParameterFilesDir, qt.QUrl.TolerantMode));
 
   def onApplyButton(self):
     if self.registrationInProgress:
@@ -304,7 +310,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     self.scriptPath = os.path.dirname(os.path.abspath(__file__))
     self.registrationParameterFilesDir = os.path.abspath(os.path.join(self.scriptPath, 'Resources', 'RegistrationParameters'))
     self.elastixBinDir = None # this will be determined dynamically
-    
+
     import platform
     executableExt = '.exe' if platform.system() == 'Windows' else ''
     self.elastixFilename = 'elastix' + executableExt
@@ -322,7 +328,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     self.elastixBinDir = self.getCustomElastixBinDir()
     if self.elastixBinDir:
       return self.elastixBinDir
-    
+
     elastixBinDirCandidates = [
       # install tree
       os.path.join(self.scriptPath, '../../../bin'),
@@ -331,7 +337,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
       os.path.join(self.scriptPath, '../../../../bin/Debug'),
       os.path.join(self.scriptPath, '../../../../bin/RelWithDebInfo'),
       os.path.join(self.scriptPath, '../../../../bin/MinSizeRel') ]
-    
+
     for elastixBinDirCandidate in elastixBinDirCandidates:
       if os.path.isfile(os.path.join(elastixBinDirCandidate, self.elastixFilename)):
         # elastix found
@@ -339,7 +345,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
         return self.elastixBinDir
 
     raise ValueError('Elastix not found')
-  
+
   def getCustomElastixBinDir(self):
     settings = qt.QSettings()
     if settings.contains(self.customElastixBinDirSettingsKey):
@@ -362,14 +368,14 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     elastixBinDir = self.getElastixBinDir()
     elastixEnv = os.environ.copy()
     elastixEnv["PATH"] = elastixBinDir + os.pathsep + elastixEnv["PATH"]
-    
+
     import platform
     if platform.system() != 'Windows':
       elastixLibDir = os.path.abspath(os.path.join(elastixBinDir, '../lib'))
       elastixEnv["LD_LIBRARY_PATH"] = elastixLibDir + os.pathsep + elastixEnv["LD_LIBRARY_PATH"]
-    
+
     return elastixEnv
-  
+
   def getRegistrationPresets(self):
     if self.registrationPresets:
       return self.registrationPresets
@@ -380,7 +386,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
       raise ValueError("Failed to open parameter set database: "+elastixParameterSetDatabasePath)
     elastixParameterSetDatabaseXml = vtk.vtkXMLUtilities.ReadElementFromFile(elastixParameterSetDatabasePath)
     elastixParameterSetDatabaseXml.UnRegister(None)
-    
+
     # Create python list from XML for convenience
     self.registrationPresets = []
     for parameterSetIndex in range(elastixParameterSetDatabaseXml.GetNumberOfNestedElements()):
@@ -446,8 +452,8 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     fileInfo = qt.QFileInfo(qt.QDir(tempDir), tempDirName)
     dirPath = fileInfo.absoluteFilePath()
     qt.QDir().mkpath(dirPath)
-    return dirPath 
-  
+    return dirPath
+
   def registerVolumes(self, fixedVolumeNode, movingVolumeNode, parameterFilenames, outputTransformNode, outputVolumeNode):
     self.abortRequested = False
     tempDir = self.createTempDirectory()
@@ -463,7 +469,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
 
     # Run registration
     resultTransformDir = os.path.join(tempDir, 'result-transform')
-    qt.QDir().mkpath(resultTransformDir)    
+    qt.QDir().mkpath(resultTransformDir)
     inputParamsElastix = ['-f', fixedVolumePath, '-m', movingVolumePath, '-out', resultTransformDir]
     for parameterFilename in parameterFilenames:
       inputParamsElastix.append('-p')
@@ -511,7 +517,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     if self.deleteTemporaryFiles:
       import shutil
       shutil.rmtree(tempDir)
-      
+
     self.addLog("Registration is completed")
 
 class ElastixTest(ScriptedLoadableModuleTest):
@@ -548,7 +554,7 @@ class ElastixTest(ScriptedLoadableModuleTest):
     #
     # first, get some data
     #
-    
+
     import SampleData
     sampleDataLogic = SampleData.SampleDataLogic()
     tumor1 = sampleDataLogic.downloadMRBrainTumor1()
@@ -557,11 +563,11 @@ class ElastixTest(ScriptedLoadableModuleTest):
     outputVolume = slicer.vtkMRMLScalarVolumeNode()
     slicer.mrmlScene.AddNode(outputVolume)
     outputVolume.CreateDefaultDisplayNodes()
-    
-    logic = ElastixLogic()       
+
+    logic = ElastixLogic()
     parameterFilenames = logic.getRegistrationPresets()[0][RegistrationPresets_ParameterFilenames]
     logic.registerVolumes(tumor1, tumor2, parameterFilenames, None, outputVolume)
-    
+
     self.delayDisplay('Test passed!')
 
 
