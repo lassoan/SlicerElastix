@@ -18,13 +18,20 @@ class Elastix(ScriptedLoadableModule):
     self.parent.title = "General Registration (Elastix)"
     self.parent.categories = ["Registration"]
     self.parent.dependencies = []
-    self.parent.contributors = ["John Doe (AnyWare Corp.)"] # replace with "Firstname Lastname (Organization)"
-    self.parent.helpText = """Align volumes based on image content using <a href="http://elastix.isi.uu.nl/">Elastix medical image registration toolbox</a>."""
+    self.parent.contributors = ["Andras Lasso (PerkLab - Queen's University)"]
+    self.parent.helpText = """Align volumes based on image content using <a href="http://elastix.isi.uu.nl/">Elastix medical image registration toolbox</a>.
+<p>Registration troubleshooting: check "Keep temporary files" option before starting regsitration and click on "Show temp folder" to open the folder that contains detailed logs.
+<p>Edit registration parameters: open Advanced section, click "Show database folder", and edit presets. To add a new preset or modify registration phases, modify ElastixParameterSetDatabase.xml.
+See <a href="http://elastix.bigr.nl/wiki/index.php/Parameter_file_database">registration parameter set database</a> and <a href="http://elastix.isi.uu.nl/doxygen/index.html">Elastix documentation</a> for more details."""
     #self.parent.helpText += self.getDefaultModuleDocumentationLink()
     self.parent.acknowledgementText = """
 This module was originally developed by Andras Lasso (Queen's University, PerkLab)
-to serve as a frontend to <a href="http://elastix.isi.uu.nl/">Elastix medical image registration toolbox</a>.
-""" # replace with organization, grant and thanks.
+to serve as a frontend to Elastix medical image registration toolbox.
+If you use this module, please cite the following articles:
+<ul><li>S. Klein, M. Staring, K. Murphy, M.A. Viergever, J.P.W. Pluim, "<a href="http://elastix.isi.uu.nl/marius/publications/2010_j_TMI.php">elastix: a toolbox for intensity based medical image registration</a>", IEEE Transactions on Medical Imaging, vol. 29, no. 1, pp. 196 - 205, January 2010.</li>
+<li>D.P. Shamonin, E.E. Bron, B.P.F. Lelieveldt, M. Smits, S. Klein and M. Staring, "<a href="http://elastix.isi.uu.nl/marius/publications/2014_j_FNI.php">Fast Parallel Image Registration on CPU and GPU for Diagnostic Classification of Alzheimer's Disease</a>", Frontiers in Neuroinformatics, vol. 7, no. 50, pp. 1-15, January 2014.</li></ul>
+See more information about Elastix medical image registration toolbox at <a href="http://elastix.isi.uu.nl/">http://elastix.isi.uu.nl/</a>.
+"""
 
 #
 # ElastixWidget
@@ -110,6 +117,46 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     for preset in self.logic.getRegistrationPresets():
       self.registrationPresetSelector.addItem("{0} ({1})".format(preset[RegistrationPresets_Modality], preset[RegistrationPresets_Content]))
     inputParametersFormLayout.addRow("Preset: ", self.registrationPresetSelector)
+
+    #
+    # Outputs
+    #
+    maskingParametersCollapsibleButton = ctk.ctkCollapsibleButton()
+    maskingParametersCollapsibleButton.text = "Masking"
+    maskingParametersCollapsibleButton.collapsed = True
+    self.layout.addWidget(maskingParametersCollapsibleButton)
+
+    # Layout within the dummy collapsible button
+    maskingParametersFormLayout = qt.QFormLayout(maskingParametersCollapsibleButton)
+
+    #
+    # fixed volume mask selector
+    #
+    self.fixedVolumeMaskSelector = slicer.qMRMLNodeComboBox()
+    self.fixedVolumeMaskSelector.nodeTypes = ["vtkMRMLLabelMapVolumeNode"]
+    self.fixedVolumeMaskSelector.addEnabled = False
+    self.fixedVolumeMaskSelector.removeEnabled = False
+    self.fixedVolumeMaskSelector.noneEnabled = True
+    self.fixedVolumeMaskSelector.showHidden = False
+    self.fixedVolumeMaskSelector.showChildNodeTypes = False
+    self.fixedVolumeMaskSelector.setMRMLScene( slicer.mrmlScene )
+    self.fixedVolumeMaskSelector.setToolTip("Areas of the fixed volume where mask label is 0 will be ignored in the registration.")
+    maskingParametersFormLayout.addRow("Fixed volume mask: ", self.fixedVolumeMaskSelector)
+
+    #
+    # moving volume mask selector
+    #
+    self.movingVolumeMaskSelector = slicer.qMRMLNodeComboBox()
+    self.movingVolumeMaskSelector.nodeTypes = ["vtkMRMLLabelMapVolumeNode"]
+    self.movingVolumeMaskSelector.selectNodeUponCreation = True
+    self.movingVolumeMaskSelector.addEnabled = False
+    self.movingVolumeMaskSelector.removeEnabled = False
+    self.movingVolumeMaskSelector.noneEnabled = True
+    self.movingVolumeMaskSelector.showHidden = False
+    self.movingVolumeMaskSelector.showChildNodeTypes = False
+    self.movingVolumeMaskSelector.setMRMLScene( slicer.mrmlScene )
+    self.movingVolumeMaskSelector.setToolTip("Areas of the moving volume where mask label is 0 will be ignored in the registration")
+    maskingParametersFormLayout.addRow("Moving volume mask: ", self.movingVolumeMaskSelector)
 
     #
     # Outputs
@@ -213,6 +260,9 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.movingVolumeSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.outputVolumeSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.outputTransformSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    # Immediately update deleteTemporaryFiles in the logic to make it possible to decide to
+    # keep the temporary file while the registration is running
+    self.keepTemporaryFilesCheckBox.connect("toggled(bool)", self.onKeepTemporaryFilesToggled)
 
     # Add vertical spacer
     self.layout.addStretch(1)
@@ -244,6 +294,9 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
   def onShowRegistrationParametersDatabaseFolder(self):
     qt.QDesktopServices().openUrl(qt.QUrl("file:///" + self.logic.registrationParameterFilesDir, qt.QUrl.TolerantMode));
 
+  def onKeepTemporaryFilesToggled(self, toggle):
+    self.logic.deleteTemporaryFiles = toggle
+
   def onApplyButton(self):
     if self.registrationInProgress:
       self.registrationInProgress = False
@@ -267,7 +320,12 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
       parameterFilenames = self.logic.getRegistrationPresets()[self.registrationPresetSelector.currentIndex][RegistrationPresets_ParameterFilenames]
 
       self.logic.registerVolumes(self.fixedVolumeSelector.currentNode(), self.movingVolumeSelector.currentNode(),
-        parameterFilenames, self.outputTransformSelector.currentNode(), self.outputVolumeSelector.currentNode())
+        parameterFilenames = parameterFilenames,
+        outputVolumeNode = self.outputVolumeSelector.currentNode(),
+        outputTransformNode = self.outputTransformSelector.currentNode(),
+        fixedVolumeMaskNode = self.fixedVolumeMaskSelector.currentNode(),
+        movingVolumeMaskNode = self.movingVolumeMaskSelector.currentNode())
+
     except Exception as e:
       print e
       self.addLog("Error: {0}".format(e.message))
@@ -448,13 +506,15 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
   def createTempDirectory(self):
     import qt, slicer
     tempDir = qt.QDir(self.getTempDirectoryBase())
-    tempDirName = qt.QDateTime().currentDateTime().toString("yyyy-MM-dd_hh+mm+ss.zzz")
+    tempDirName = qt.QDateTime().currentDateTime().toString("yyyyMMdd_hhmmss_zzz")
     fileInfo = qt.QFileInfo(qt.QDir(tempDir), tempDirName)
     dirPath = fileInfo.absoluteFilePath()
     qt.QDir().mkpath(dirPath)
     return dirPath
 
-  def registerVolumes(self, fixedVolumeNode, movingVolumeNode, parameterFilenames, outputTransformNode, outputVolumeNode):
+  def registerVolumes(self, fixedVolumeNode, movingVolumeNode, parameterFilenames = None, outputVolumeNode = None, outputTransformNode = None,
+    fixedVolumeMaskNode = None, movingVolumeMaskNode = None):
+
     self.abortRequested = False
     tempDir = self.createTempDirectory()
     self.addLog('Volume registration is started in working directory: '+tempDir)
@@ -462,19 +522,37 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     # Write inputs
     inputDir = os.path.join(tempDir, 'input')
     qt.QDir().mkpath(inputDir)
-    fixedVolumePath = os.path.join(inputDir, "fixed.mha")
-    movingVolumePath = os.path.join(inputDir, "moving.mha")
-    slicer.util.saveNode(fixedVolumeNode, fixedVolumePath, {"useCompression": False})
-    slicer.util.saveNode(movingVolumeNode, movingVolumePath, {"useCompression": False})
 
-    # Run registration
+    inputParamsElastix = []
+
+    # Add input volumes
+    inputVolumes = []
+    inputVolumes.append([fixedVolumeNode, 'fixed.mha', '-f'])
+    inputVolumes.append([movingVolumeNode, 'moving.mha', '-m'])
+    inputVolumes.append([fixedVolumeMaskNode, 'fixedMask.mha', '-fMask'])
+    inputVolumes.append([movingVolumeMaskNode, 'movingMask.mha', '-mMask'])
+    for [volumeNode, filename, paramName] in inputVolumes:
+      if not volumeNode:
+        continue
+      filePath = os.path.join(inputDir, filename)
+      slicer.util.saveNode(volumeNode, filePath, {"useCompression": False})
+      inputParamsElastix.append(paramName)
+      inputParamsElastix.append(filePath)
+
+    # Specify output location
     resultTransformDir = os.path.join(tempDir, 'result-transform')
     qt.QDir().mkpath(resultTransformDir)
-    inputParamsElastix = ['-f', fixedVolumePath, '-m', movingVolumePath, '-out', resultTransformDir]
+    inputParamsElastix += ['-out', resultTransformDir]
+
+    # Specify parameter files
+    if parameterFilenames == None:
+      parameterFilenames = self.getRegistrationPresets()[0][RegistrationPresets_ParameterFilenames]
     for parameterFilename in parameterFilenames:
       inputParamsElastix.append('-p')
       parameterFilePath = os.path.abspath(os.path.join(self.registrationParameterFilesDir, parameterFilename))
       inputParamsElastix.append(parameterFilePath)
+
+    # Run registration
     ep = self.startElastix(inputParamsElastix)
     self.logProcessOutput(ep)
 
@@ -482,7 +560,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     if not self.abortRequested:
       resultResampleDir = os.path.join(tempDir, 'result-resample')
       qt.QDir().mkpath(resultResampleDir)
-      inputParamsTransformix = ['-in', movingVolumePath, '-out', resultResampleDir]
+      inputParamsTransformix = ['-in', os.path.join(inputDir, 'moving.mha'), '-out', resultResampleDir]
       if outputTransformNode:
         inputParamsTransformix += ['-def', 'all']
       if outputVolumeNode:
@@ -566,7 +644,7 @@ class ElastixTest(ScriptedLoadableModuleTest):
 
     logic = ElastixLogic()
     parameterFilenames = logic.getRegistrationPresets()[0][RegistrationPresets_ParameterFilenames]
-    logic.registerVolumes(tumor1, tumor2, parameterFilenames, None, outputVolume)
+    logic.registerVolumes(tumor1, tumor2, parameterFilenames = parameterFilenames, outputVolumeNode = outputVolume)
 
     self.delayDisplay('Test passed!')
 
