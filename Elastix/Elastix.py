@@ -425,12 +425,12 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     """Create an environment for elastix where executables are added to the path"""
     elastixBinDir = self.getElastixBinDir()
     elastixEnv = os.environ.copy()
-    elastixEnv["PATH"] = elastixBinDir + os.pathsep + elastixEnv.get["PATH"] if os.environ.has_key('PATH') else elastixBinDir
+    elastixEnv["PATH"] = elastixBinDir + os.pathsep + elastixEnv["PATH"] if elastixEnv.get("PATH") else elastixBinDir
 
     import platform
     if platform.system() != 'Windows':
       elastixLibDir = os.path.abspath(os.path.join(elastixBinDir, '../lib'))
-      elastixEnv["LD_LIBRARY_PATH"] = elastixLibDir + os.pathsep + elastixEnv["LD_LIBRARY_PATH"] if os.environ.has_key('LD_LIBRARY_PATH') else elastixLibDir
+      elastixEnv["LD_LIBRARY_PATH"] = elastixLibDir + os.pathsep + elastixEnv["LD_LIBRARY_PATH"] if elastixEnv.get("LD_LIBRARY_PATH") else elastixLibDir
 
     return elastixEnv
 
