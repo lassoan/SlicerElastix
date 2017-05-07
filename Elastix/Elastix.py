@@ -391,6 +391,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
       # install tree
       os.path.join(self.scriptPath, '../../../bin'),
       # build tree
+      os.path.join(self.scriptPath, '../../../../bin'),
       os.path.join(self.scriptPath, '../../../../bin/Release'),
       os.path.join(self.scriptPath, '../../../../bin/Debug'),
       os.path.join(self.scriptPath, '../../../../bin/RelWithDebInfo'),
