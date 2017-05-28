@@ -31,8 +31,8 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     #SOURCE_SUBDIR src # requires CMake 3.7 or later
     BINARY_DIR ${proj}-build
     INSTALL_DIR ${${proj}_INSTALL_DIR}
-    GIT_REPOSITORY "${git_protocol}://github.com/mstaring/elastix.git"
-    GIT_TAG "617b0729fb6200fce279f7e6388967c6315ddc90"
+    GIT_REPOSITORY "${git_protocol}://github.com/SuperElastix/elastix.git"
+    GIT_TAG "ef057ff89233822b26b04b31c3c043af57d5deff"
     #--Patch step-------------  
     PATCH_COMMAND ${CMAKE_COMMAND} -Delastix_SRC_DIR=${CMAKE_BINARY_DIR}/${proj}
       -P ${CMAKE_CURRENT_LIST_DIR}/${proj}_patch.cmake
