@@ -310,9 +310,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.statusLabel.plainText = ''
     slicer.app.setOverrideCursor(qt.Qt.WaitCursor)
     try:
-
-      if self.customElastixBinDirSelector.currentPath:
-        self.logic.setCustomElastixBinDir(self.customElastixBinDirSelector.currentPath)
+      self.logic.setCustomElastixBinDir(self.customElastixBinDirSelector.currentPath)
 
       self.logic.deleteTemporaryFiles = not self.keepTemporaryFilesCheckBox.checked
       self.logic.logStandardOutput = self.showDetailedLogDuringExecutionCheckBox.checked
