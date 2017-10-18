@@ -53,15 +53,8 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${CMAKE_BINARY_DIR}/${Slicer_THIRDPARTY_BIN_DIR}
       -DCMAKE_LIBRARY_OUTPUT_DIRECTORY:PATH=${CMAKE_BINARY_DIR}/${Slicer_THIRDPARTY_LIB_DIR}
       -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} 
-      #-DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${CMAKE_BINARY_DIR}/inner-build/${Slicer_THIRDPARTY_LIB_DIR} # location of elastix.exe and transformix.exe in the build tree
-      #-DCMAKE_LIBRARY_OUTPUT_DIRECTORY:PATH=${CMAKE_BINARY_DIR}/inner-build/${Slicer_THIRDPARTY_LIB_DIR}
-      #-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${CMAKE_BINARY_DIR}/inner-build/${Slicer_THIRDPARTY_LIB_DIR}
-      #-DELASTIX_RUNTIME_DIR:PATH=${Slicer_THIRDPARTY_LIB_DIR} # location of elastix.exe and transformix.exe in the installation package
-      -DELASTIX_INSTALL_RUNTIME_DIR:STRING=${Slicer_INSTALL_THIRDPARTY_LIB_DIR} # to test
-      #-DELASTIX_INSTALL_LIBRARY_DIR:PATH=${Slicer_THIRDPARTY_LIB_DIR} # location of ann.dll in the installation package
-      -DELASTIX_INSTALL_LIBRARY_DIR:STRING=${Slicer_INSTALL_THIRDPARTY_LIB_DIR} # to test
-      #-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
-      #-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/${proj}-install
+      -DELASTIX_RUNTIME_DIR:STRING=${Slicer_INSTALL_THIRDPARTY_LIB_DIR}
+      -DELASTIX_LIBRARY_DIR:STRING=${Slicer_INSTALL_THIRDPARTY_LIB_DIR}
     #--Build step-----------------
     #--Install step-----------------
     # Don't perform installation at the end of the build
