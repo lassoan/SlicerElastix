@@ -387,6 +387,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
 
     elastixBinDirCandidates = [
       # install tree
+      os.path.join(self.scriptPath, '..'),
       os.path.join(self.scriptPath, '../../../bin'),
       # build tree
       os.path.join(self.scriptPath, '../../../../bin'),
@@ -457,21 +458,29 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
 
     return self.registrationPresets
 
+  def getStartupInfo(self):
+    import subprocess
+    # Hide console window
+    info = subprocess.STARTUPINFO()
+    info.dwFlags = 1
+    info.wShowWindow = 0
+    return info
+    
   def startElastix(self, cmdLineArguments):
     self.addLog("Register volumes...")
     import subprocess
     executableFilePath = os.path.join(self.getElastixBinDir(),self.elastixFilename)
     logging.info("Register volumes using: "+executableFilePath+": "+repr(cmdLineArguments))
     return subprocess.Popen([executableFilePath] + cmdLineArguments, env=self.getElastixEnv(),
-                            stdout=subprocess.PIPE, universal_newlines=True)
+                            stdout=subprocess.PIPE, universal_newlines=True, startupinfo=self.getStartupInfo())
 
   def startTransformix(self, cmdLineArguments):
     self.addLog("Generate output...")
     import subprocess
     executableFilePath = os.path.join(self.getElastixBinDir(), self.transformixFilename)
-    logging.info("Generate output using: " + executableFilePath + ": " + repr(cmdLineArguments))
+    logging.info("Generate output using: " + executableFilePath + ": " + repr(cmdLineArguments))    
     return subprocess.Popen([os.path.join(self.getElastixBinDir(),self.transformixFilename)] + cmdLineArguments, env=self.getElastixEnv(),
-                            stdout=subprocess.PIPE, universal_newlines = True)
+                            stdout=subprocess.PIPE, universal_newlines = True, startupinfo=self.getStartupInfo())
 
   def logProcessOutput(self, process):
     # save process output (if not logged) so that it can be displayed in case of an error
