@@ -175,6 +175,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.outputVolumeSelector.nodeTypes = ["vtkMRMLScalarVolumeNode"]
     self.outputVolumeSelector.selectNodeUponCreation = True
     self.outputVolumeSelector.addEnabled = True
+    self.outputVolumeSelector.renameEnabled = True
     self.outputVolumeSelector.removeEnabled = True
     self.outputVolumeSelector.noneEnabled = True
     self.outputVolumeSelector.showHidden = False
@@ -190,6 +191,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.outputTransformSelector.nodeTypes = ["vtkMRMLTransformNode"]
     self.outputTransformSelector.selectNodeUponCreation = True
     self.outputTransformSelector.addEnabled = True
+    self.outputTransformSelector.renameEnabled = True
     self.outputTransformSelector.removeEnabled = True
     self.outputTransformSelector.noneEnabled = True
     self.outputTransformSelector.showHidden = False
