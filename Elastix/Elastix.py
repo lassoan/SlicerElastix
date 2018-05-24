@@ -598,6 +598,8 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
           loadedOutputVolumeNode.GetIJKToRASMatrix(ijkToRas)
           outputVolumeNode.SetIJKToRASMatrix(ijkToRas)
           slicer.mrmlScene.RemoveNode(loadedOutputVolumeNode)
+        else:
+          self.addLog("Failed to load output volume from "+outputVolumePath)
 
       if outputTransformNode:
         outputTransformPath = os.path.join(resultResampleDir, "deformationField.mhd")
@@ -608,6 +610,8 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
           else:
             outputTransformNode.SetAndObserveTransformFromParent(loadedOutputTransformNode.GetTransformFromParent())
           slicer.mrmlScene.RemoveNode(loadedOutputTransformNode)
+        else:
+          self.addLog("Failed to load output transform from "+outputTransformPath)
 
     # Clean up
     if self.deleteTemporaryFiles:

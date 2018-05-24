@@ -59,7 +59,7 @@
 (DefaultPixelValue 0)
 (WriteResultImage "true")
 (ResultImagePixelType "unsigned short")
-(ResultImageFormat "dcm")
+(ResultImageFormat "mhd")
 (CompressResultImage "true")
 
 

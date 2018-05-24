@@ -125,4 +125,4 @@
 
 
 //Result image format
-(ResultImageFormat "hdr")
+(ResultImageFormat "mhd")
