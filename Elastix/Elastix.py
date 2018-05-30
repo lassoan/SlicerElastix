@@ -461,7 +461,8 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     return self.registrationPresets
 
   def getStartupInfo(self):
-    if platform != "win32":
+    import platform
+    if platform.system() != 'Windows':
       return None
 
     # Hide console window (only needed on Windows)
