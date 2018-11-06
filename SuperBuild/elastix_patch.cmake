@@ -4,9 +4,9 @@
 # in the extension package.
 
 set(runtime_libraries_cmakelists
-  ${elastix_SRC_DIR}/src/Components/Metrics/KNNGraphAlphaMutualInformation/KNN/CMakeLists.txt
-  ${elastix_SRC_DIR}/src/Components/Metrics/KNNGraphAlphaMutualInformation/KNN/ann_1.1/CMakeLists.txt
-  ${elastix_SRC_DIR}/src/Core/CMakeLists.txt)
+  ${elastix_SRC_DIR}/Components/Metrics/KNNGraphAlphaMutualInformation/KNN/CMakeLists.txt
+  ${elastix_SRC_DIR}/Components/Metrics/KNNGraphAlphaMutualInformation/KNN/ann_1.1/CMakeLists.txt
+  ${elastix_SRC_DIR}/Core/CMakeLists.txt)
 
 foreach(cmakefile ${runtime_libraries_cmakelists})
   file(READ ${cmakefile} cmakefile_src)
