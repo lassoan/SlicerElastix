@@ -582,11 +582,12 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     if not self.abortRequested:
       resultResampleDir = os.path.join(tempDir, 'result-resample')
       qt.QDir().mkpath(resultResampleDir)
-      inputParamsTransformix = ['-in', os.path.join(inputDir, 'moving.mha'), '-out', resultResampleDir]
+      inputParamsTransformix = []
+      inputParamsTransformix += ['-tp', resultTransformDir+'/TransformParameters.'+str(len(parameterFilenames)-1)+'.txt']
+      inputParamsTransformix += ['-in', os.path.join(inputDir, 'moving.mha')]
+      inputParamsTransformix += ['-out', resultResampleDir]
       if outputTransformNode:
         inputParamsTransformix += ['-def', 'all']
-      if outputVolumeNode:
-        inputParamsTransformix += ['-tp', resultTransformDir+'/TransformParameters.'+str(len(parameterFilenames)-1)+'.txt']
       tp = self.startTransformix(inputParamsTransformix)
       self.logProcessOutput(tp)
 
