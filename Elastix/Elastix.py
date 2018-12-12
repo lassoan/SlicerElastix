@@ -171,7 +171,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     landmarksParametersFormLayout = qt.QFormLayout(landmarksParametersCollapsibleButton)
 
     #
-    # NEW fixed volume landmarks selector               
+    # fixed volume landmarks selector               
     #
     self.fixedVolumeLandmarksSelector = slicer.qMRMLNodeComboBox()
     self.fixedVolumeLandmarksSelector.nodeTypes = ["vtkMRMLMarkupsFiducialNode"]
@@ -185,7 +185,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     landmarksParametersFormLayout.addRow("Fixed volume landmark fiducials: ", self.fixedVolumeLandmarksSelector)
 
     #
-    # NEW moving volume landmarks selector              
+    # moving volume landmarks selector              
     #
     self.movingVolumeLandmarksSelector = slicer.qMRMLNodeComboBox()
     self.movingVolumeLandmarksSelector.nodeTypes = ["vtkMRMLMarkupsFiducialNode"]
@@ -259,7 +259,6 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.keepTemporaryFilesCheckBox.checked = False
     self.keepTemporaryFilesCheckBox.setToolTip("Keep temporary files (inputs, computed outputs, logs) after the registration is completed.")
     
-    # NEW ***********
     self.useMovingParentTransformCheckBox = qt.QCheckBox(" ")
     self.useMovingParentTransformCheckBox.checked = False
     self.useMovingParentTransformCheckBox.setToolTip("Initialize Elastix with the transform currently applied to the moving image (Only implemented for linear trasforms).")
@@ -309,9 +308,9 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.movingVolumeSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.outputVolumeSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.outputTransformSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-    self.fixedVolumeLandmarksSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect) # NEW **********************************************
-    self.movingVolumeLandmarksSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect) # NEW **********************************************
-    self.useMovingParentTransformCheckBox.connect('clicked(bool)', self.onSelect)      # NEW **********************************************
+    self.fixedVolumeLandmarksSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect) 
+    self.movingVolumeLandmarksSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect) 
+    self.useMovingParentTransformCheckBox.connect('clicked(bool)', self.onSelect)      
     # Immediately update deleteTemporaryFiles in the logic to make it possible to decide to
     # keep the temporary file while the registration is running
     self.keepTemporaryFilesCheckBox.connect("toggled(bool)", self.onKeepTemporaryFilesToggled)
@@ -339,7 +338,6 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
       self.applyButton.text = "Select an output volume and/or output transform"
       self.applyButton.enabled = False
     
-    # NEW **********************************************
     elif self.fixedVolumeLandmarksSelector.currentNode() and self.movingVolumeLandmarksSelector.currentNode() and self.fixedVolumeLandmarksSelector.currentNode().GetNumberOfFiducials() !=  self.movingVolumeLandmarksSelector.currentNode().GetNumberOfFiducials():
       self.applyButton.text = "Number of landmark fiducials for fixed and moving volume must match"
       self.applyButton.enabled = False
@@ -612,7 +610,6 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     qt.QDir().mkpath(dirPath)
     return dirPath
   
-  # NEW **********************************************  
   def createMatrixRAStoLPS(self):     
     matrixRAStoLPS = vtk.vtkMatrix4x4()
     matrixRAStoLPS.Identity()
@@ -620,7 +617,6 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     matrixRAStoLPS.SetElement(1,1,-1.0)
     return matrixRAStoLPS  
 
-  # NEW **********************************************
   def writePointFile(self, fiducialNode, filename):   
     matrixRAStoLPS = self.createMatrixRAStoLPS()
     numberOfPoints = fiducialNode.GetNumberOfFiducials()
@@ -639,7 +635,6 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
       for n in range(numberOfPoints):
         pointFile.write("%f %f %f\n" % (arrayOfPoints[n][0], arrayOfPoints[n][1], arrayOfPoints[n][2]))
 
-  # NEW **********************************************
   def writeInitialTransformFile(self, matrixVTK_RAS, filename):
     
     matrixRAStoLPS = self.createMatrixRAStoLPS()
@@ -694,7 +689,6 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
       inputParamsElastix.append(paramName)
       inputParamsElastix.append(filePath)
     
-    # NEW **********************************************
     # Add landmark files                    
     if fixedVolumeLandmarksNode and fixedVolumeLandmarksNode.GetNumberOfFiducials() > 0:
       filename = 'LandmarksFixed.txt'
