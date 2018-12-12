@@ -1,6 +1,7 @@
 import os
 import unittest
 import vtk, qt, ctk, slicer
+import numpy as np
 from slicer.ScriptedLoadableModule import *
 import logging
 
@@ -119,7 +120,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     inputParametersFormLayout.addRow("Preset: ", self.registrationPresetSelector)
 
     #
-    # Outputs
+    # Masking
     #
     maskingParametersCollapsibleButton = ctk.ctkCollapsibleButton()
     maskingParametersCollapsibleButton.text = "Masking"
@@ -157,6 +158,46 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.movingVolumeMaskSelector.setMRMLScene( slicer.mrmlScene )
     self.movingVolumeMaskSelector.setToolTip("Areas of the moving volume where mask label is 0 will be ignored in the registration")
     maskingParametersFormLayout.addRow("Moving volume mask: ", self.movingVolumeMaskSelector)
+
+    #
+    # Landmarks
+    #
+    landmarksParametersCollapsibleButton = ctk.ctkCollapsibleButton()
+    landmarksParametersCollapsibleButton.text = "Landmark fiducials"
+    landmarksParametersCollapsibleButton.collapsed = True
+    self.layout.addWidget(landmarksParametersCollapsibleButton)
+
+    # Layout within the dummy collapsible button
+    landmarksParametersFormLayout = qt.QFormLayout(landmarksParametersCollapsibleButton)
+
+    #
+    # NEW fixed volume landmarks selector               
+    #
+    self.fixedVolumeLandmarksSelector = slicer.qMRMLNodeComboBox()
+    self.fixedVolumeLandmarksSelector.nodeTypes = ["vtkMRMLMarkupsFiducialNode"]
+    self.fixedVolumeLandmarksSelector.addEnabled = False
+    self.fixedVolumeLandmarksSelector.removeEnabled = False
+    self.fixedVolumeLandmarksSelector.noneEnabled = True
+    self.fixedVolumeLandmarksSelector.showHidden = False
+    self.fixedVolumeLandmarksSelector.showChildNodeTypes = False
+    self.fixedVolumeLandmarksSelector.setMRMLScene( slicer.mrmlScene )
+    self.fixedVolumeLandmarksSelector.setToolTip("Landmark points of the fixed volume.")
+    landmarksParametersFormLayout.addRow("Fixed volume landmark fiducials: ", self.fixedVolumeLandmarksSelector)
+
+    #
+    # NEW moving volume landmarks selector              
+    #
+    self.movingVolumeLandmarksSelector = slicer.qMRMLNodeComboBox()
+    self.movingVolumeLandmarksSelector.nodeTypes = ["vtkMRMLMarkupsFiducialNode"]
+    self.movingVolumeLandmarksSelector.selectNodeUponCreation = True
+    self.movingVolumeLandmarksSelector.addEnabled = False
+    self.movingVolumeLandmarksSelector.removeEnabled = False
+    self.movingVolumeLandmarksSelector.noneEnabled = True
+    self.movingVolumeLandmarksSelector.showHidden = False
+    self.movingVolumeLandmarksSelector.showChildNodeTypes = False
+    self.movingVolumeLandmarksSelector.setMRMLScene( slicer.mrmlScene )
+    self.movingVolumeLandmarksSelector.setToolTip("Landmark points of the moving volume.")
+    landmarksParametersFormLayout.addRow("Moving volume landmark fiducials: ", self.movingVolumeLandmarksSelector)
 
     #
     # Outputs
@@ -217,6 +258,12 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.keepTemporaryFilesCheckBox = qt.QCheckBox(" ")
     self.keepTemporaryFilesCheckBox.checked = False
     self.keepTemporaryFilesCheckBox.setToolTip("Keep temporary files (inputs, computed outputs, logs) after the registration is completed.")
+    
+    # NEW ***********
+    self.useMovingParentTransformCheckBox = qt.QCheckBox(" ")
+    self.useMovingParentTransformCheckBox.checked = False
+    self.useMovingParentTransformCheckBox.setToolTip("Initialize Elastix with the transform currently applied to the moving image (Only implemented for linear trasforms).")
+    advancedFormLayout.addRow("Use parent transform of moving image for initialization:", self.useMovingParentTransformCheckBox)
 
     self.showTemporaryFilesFolderButton = qt.QPushButton("Show temp folder")
     self.showTemporaryFilesFolderButton.toolTip = "Open the folder where temporary files are stored."
@@ -262,6 +309,9 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     self.movingVolumeSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.outputVolumeSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
     self.outputTransformSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    self.fixedVolumeLandmarksSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect) # NEW **********************************************
+    self.movingVolumeLandmarksSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect) # NEW **********************************************
+    self.useMovingParentTransformCheckBox.connect('clicked(bool)', self.onSelect)      # NEW **********************************************
     # Immediately update deleteTemporaryFiles in the logic to make it possible to decide to
     # keep the temporary file while the registration is running
     self.keepTemporaryFilesCheckBox.connect("toggled(bool)", self.onKeepTemporaryFilesToggled)
@@ -277,6 +327,8 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
 
   def onSelect(self):
     enabled = True
+    self.movingVolumeTransformToWorld = vtk.vtkMatrix4x4()
+    
     if not self.fixedVolumeSelector.currentNode() or not self.movingVolumeSelector.currentNode():
       self.applyButton.text = "Select fixed and moving volumes"
       self.applyButton.enabled = False
@@ -286,6 +338,24 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     elif not self.outputVolumeSelector.currentNode() and not self.outputTransformSelector.currentNode():
       self.applyButton.text = "Select an output volume and/or output transform"
       self.applyButton.enabled = False
+    
+    # NEW **********************************************
+    elif self.fixedVolumeLandmarksSelector.currentNode() and self.movingVolumeLandmarksSelector.currentNode() and self.fixedVolumeLandmarksSelector.currentNode().GetNumberOfFiducials() !=  self.movingVolumeLandmarksSelector.currentNode().GetNumberOfFiducials():
+      self.applyButton.text = "Number of landmark fiducials for fixed and moving volume must match"
+      self.applyButton.enabled = False
+    elif self.fixedVolumeLandmarksSelector.currentNode() and self.fixedVolumeLandmarksSelector.currentNode().GetNumberOfFiducials() == 0:
+      self.applyButton.text = "Number of points in selected landmark fiducials must be greater than zero"
+      self.applyButton.enabled = False
+    elif self.movingVolumeLandmarksSelector.currentNode() and self.movingVolumeLandmarksSelector.currentNode().GetNumberOfFiducials() == 0:
+      self.applyButton.text = "Number of points in selected landmark fiducials must be greater than zero"
+      self.applyButton.enabled = False
+    elif self.useMovingParentTransformCheckBox.checked and not self.movingVolumeSelector.currentNode().GetParentTransformNode():
+      self.applyButton.text = "Parent transform of moving volume does not exist"
+      self.applyButton.enabled = False     
+    elif self.useMovingParentTransformCheckBox.checked and self.movingVolumeSelector.currentNode().GetParentTransformNode().GetMatrixTransformToWorld(self.movingVolumeTransformToWorld) == 0: # Parent transform of moving volume is not linear
+      self.applyButton.text = "Parent transform of moving volume must be linear if used for Elastix initialization"
+      self.applyButton.enabled = False 
+    
     else:
       self.applyButton.text = "Apply"
       self.applyButton.enabled = True
@@ -319,12 +389,20 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
 
       parameterFilenames = self.logic.getRegistrationPresets()[self.registrationPresetSelector.currentIndex][RegistrationPresets_ParameterFilenames]
 
+      if self.useMovingParentTransformCheckBox.checked:
+        intialTransform = self.movingVolumeSelector.currentNode().GetParentTransformNode()
+      else:
+        intialTransform = None
+      
       self.logic.registerVolumes(self.fixedVolumeSelector.currentNode(), self.movingVolumeSelector.currentNode(),
         parameterFilenames = parameterFilenames,
         outputVolumeNode = self.outputVolumeSelector.currentNode(),
         outputTransformNode = self.outputTransformSelector.currentNode(),
         fixedVolumeMaskNode = self.fixedVolumeMaskSelector.currentNode(),
-        movingVolumeMaskNode = self.movingVolumeMaskSelector.currentNode())
+        movingVolumeMaskNode = self.movingVolumeMaskSelector.currentNode(),
+        fixedVolumeLandmarksNode = self.fixedVolumeLandmarksSelector.currentNode(), 
+        movingVolumeLandmarksNode = self.movingVolumeLandmarksSelector.currentNode(),
+        initialMovingTransformNode = intialTransform)
 
     except Exception as e:
       print e
@@ -533,9 +611,64 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     dirPath = fileInfo.absoluteFilePath()
     qt.QDir().mkpath(dirPath)
     return dirPath
+  
+  # NEW **********************************************  
+  def createMatrixRAStoLPS(self):     
+    matrixRAStoLPS = vtk.vtkMatrix4x4()
+    matrixRAStoLPS.Identity()
+    matrixRAStoLPS.SetElement(0,0,-1.0)
+    matrixRAStoLPS.SetElement(1,1,-1.0)
+    return matrixRAStoLPS  
 
+  # NEW **********************************************
+  def writePointFile(self, fiducialNode, filename):   
+    matrixRAStoLPS = self.createMatrixRAStoLPS()
+    numberOfPoints = fiducialNode.GetNumberOfFiducials()
+    arrayOfPoints = []
+    
+    for n in range(numberOfPoints):
+      pointRAS = [0,0,0,1]
+      fiducialNode.GetNthFiducialWorldCoordinates(n, pointRAS)
+      pointLPS = matrixRAStoLPS.MultiplyPoint(pointRAS)
+      arrayOfPoints.append(pointLPS)
+    
+    with open(filename, "w") as pointFile:
+      pointFile.write("point\n")
+      pointFile.write("%d\n" % numberOfPoints)
+      
+      for n in range(numberOfPoints):
+        pointFile.write("%f %f %f\n" % (arrayOfPoints[n][0], arrayOfPoints[n][1], arrayOfPoints[n][2]))
+
+  # NEW **********************************************
+  def writeInitialTransformFile(self, matrixVTK_RAS, filename):
+    
+    matrixRAStoLPS = self.createMatrixRAStoLPS()
+    matcalc = vtk.vtkMatrix4x4()
+    matrixITK_LPS = vtk.vtkMatrix4x4()
+    
+    matcalc.Multiply4x4(matrixRAStoLPS, matrixVTK_RAS, matrixITK_LPS)
+    matcalc.Multiply4x4(matrixITK_LPS, matrixRAStoLPS, matrixITK_LPS)
+    matcalc.Invert(matrixITK_LPS, matrixITK_LPS)
+    
+    # Create numpy array from the vtkMatrix4x4
+    mat_result = np.zeros((4,4))
+    for row in range(4):
+      for col in range(4):
+          mat_result[row,col] = matrixITK_LPS.GetElement(row,col)
+    
+    with open(filename, "w") as transformFile:
+      transformFile.write("(Transform \"AffineTransform\")\n(NumberOfParameters 12)\n")
+      transformFile.write("(TransformParameters %.6f %.6f %.6f %.6f %.6f %.6f %.6f %.6f %.6f %.6f %.6f %.6f)\n" % (
+        mat_result[0, 0], mat_result[0, 1], mat_result[0, 2],
+        mat_result[1, 0], mat_result[1, 1], mat_result[1, 2],
+        mat_result[2, 0], mat_result[2, 1], mat_result[2, 2],
+        mat_result[0, 3], mat_result[1, 3], mat_result[2, 3]))
+      transformFile.write("(CenterOfRotationPoint 0.0 0.0 0.0)\n")
+    
+    # ADD REST OF TRANSFORM FILE WRITING 
+  
   def registerVolumes(self, fixedVolumeNode, movingVolumeNode, parameterFilenames = None, outputVolumeNode = None, outputTransformNode = None,
-    fixedVolumeMaskNode = None, movingVolumeMaskNode = None):
+    fixedVolumeMaskNode = None, movingVolumeMaskNode = None, fixedVolumeLandmarksNode = None, movingVolumeLandmarksNode = None, initialMovingTransformNode = None):
 
     self.abortRequested = False
     tempDir = self.createTempDirectory()
@@ -547,7 +680,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
 
     inputParamsElastix = []
 
-    # Add input volumes
+    # Add input volumes                 
     inputVolumes = []
     inputVolumes.append([fixedVolumeNode, 'fixed.mha', '-f'])
     inputVolumes.append([movingVolumeNode, 'moving.mha', '-m'])
@@ -560,7 +693,30 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
       slicer.util.saveNode(volumeNode, filePath, {"useCompression": False})
       inputParamsElastix.append(paramName)
       inputParamsElastix.append(filePath)
-
+    
+    # NEW **********************************************
+    # Add landmark files                    
+    if fixedVolumeLandmarksNode and fixedVolumeLandmarksNode.GetNumberOfFiducials() > 0:
+      filename = 'LandmarksFixed.txt'
+      filePath = os.path.join(inputDir, filename)
+      self.writePointFile(fixedVolumeLandmarksNode, filePath)
+      inputParamsElastix += ['-fp', filePath]
+      
+    if movingVolumeLandmarksNode and movingVolumeLandmarksNode.GetNumberOfFiducials() > 0:
+      filename = 'LandmarksMoving.txt'
+      filePath = os.path.join(inputDir, filename)
+      self.writePointFile(movingVolumeLandmarksNode, filePath)
+      inputParamsElastix += ['-mp', filePath]
+    
+    # Add initial transform
+    if initialMovingTransformNode:
+      movingVolumeTransformToWorld = vtk.vtkMatrix4x4()
+      if initialMovingTransformNode.GetMatrixTransformToWorld(movingVolumeTransformToWorld) != 0: 
+        filename = 'InitialAffineTransform.txt'
+        filePath = os.path.join(inputDir, filename)
+        self.writeInitialTransformFile(movingVolumeTransformToWorld, filePath)
+        inputParamsElastix += ['-t0', filePath]  
+    
     # Specify output location
     resultTransformDir = os.path.join(tempDir, 'result-transform')
     qt.QDir().mkpath(resultTransformDir)
