@@ -1,5 +1,5 @@
 set(proj elastix)
-
+set(ep_common_cxx_flags "${CMAKE_CXX_FLAGS_INIT} ${ADDITIONAL_CXX_FLAGS}")
 # Set dependency list
 set(${proj}_DEPENDS "")
 
@@ -24,6 +24,8 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   set(${proj}_INSTALL_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
   set(${proj}_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 
+  set(${proj}_cxx_flags "${ep_common_cxx_flags} -Wno-inconsistent-missing-override")
+
   ExternalProject_Add(${proj}
     # Slicer
     ${${proj}_EP_ARGS}
@@ -32,18 +34,18 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     BINARY_DIR ${proj}-build
     INSTALL_DIR ${${proj}_INSTALL_DIR}
     GIT_REPOSITORY "${git_protocol}://github.com/SuperElastix/elastix.git"
-    GIT_TAG "143cdc99290a5013271c95d991725e0d49a69a51"
-    #--Patch step-------------  
+    GIT_TAG "0f24525a1c5fcfda7ab7e074a9c01cd2fcf0c437"
+    #--Patch step-------------
     PATCH_COMMAND ${CMAKE_COMMAND} -Delastix_SRC_DIR=${CMAKE_BINARY_DIR}/${proj}
       -P ${CMAKE_CURRENT_LIST_DIR}/${proj}_patch.cmake
-    #--Configure step-------------  
+    #--Configure step-------------
     CMAKE_CACHE_ARGS
       -DSubversion_SVN_EXECUTABLE:STRING=${Subversion_SVN_EXECUTABLE}
-      -DGIT_EXECUTABLE:STRING=${GIT_EXECUTABLE}    
+      -DGIT_EXECUTABLE:STRING=${GIT_EXECUTABLE}
       -DITK_DIR:STRING=${ITK_DIR}
       -DUSE_KNNGraphAlphaMutualInformationMetric:BOOL=OFF
       -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
-      -DCMAKE_CXX_FLAGS:STRING=${ep_common_cxx_flags}
+      -DCMAKE_CXX_FLAGS:STRING=${${proj}_cxx_flags}
       -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
       -DCMAKE_C_FLAGS:STRING=${ep_common_c_flags}
       -DCMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD}
@@ -53,7 +55,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       # location of elastix.exe and transformix.exe in the build tree:
       -DCMAKE_RUNTIME_OUTPUT_DIRECTORY:PATH=${CMAKE_BINARY_DIR}/${Slicer_THIRDPARTY_BIN_DIR}
       -DCMAKE_LIBRARY_OUTPUT_DIRECTORY:PATH=${CMAKE_BINARY_DIR}/${Slicer_THIRDPARTY_LIB_DIR}
-      -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} 
+      -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}
       -DELASTIX_RUNTIME_DIR:STRING=${Slicer_INSTALL_THIRDPARTY_LIB_DIR}
       -DELASTIX_LIBRARY_DIR:STRING=${Slicer_INSTALL_THIRDPARTY_LIB_DIR}
     #--Build step-----------------
