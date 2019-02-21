@@ -24,7 +24,9 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   set(${proj}_INSTALL_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
   set(${proj}_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 
-  set(${proj}_cxx_flags "${ep_common_cxx_flags} -Wno-inconsistent-missing-override")
+  if (APPLE)
+    set(${proj}_cxx_flags "${ep_common_cxx_flags} -Wno-inconsistent-missing-override")
+  endif()
 
   ExternalProject_Add(${proj}
     # Slicer
