@@ -471,7 +471,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     info.dwFlags = 1
     info.wShowWindow = 0
     return info
-    
+
   def startElastix(self, cmdLineArguments):
     self.addLog("Register volumes...")
     import subprocess
@@ -488,7 +488,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     self.addLog("Generate output...")
     import subprocess
     executableFilePath = os.path.join(self.getElastixBinDir(), self.transformixFilename)
-    logging.info("Generate output using: " + executableFilePath + ": " + repr(cmdLineArguments))    
+    logging.info("Generate output using: " + executableFilePath + ": " + repr(cmdLineArguments))
     if subprocess.mswindows:
       return subprocess.Popen([os.path.join(self.getElastixBinDir(),self.transformixFilename)] + cmdLineArguments, env=self.getElastixEnv(),
                             stdout=subprocess.PIPE, universal_newlines = True, startupinfo=self.getStartupInfo())
@@ -617,6 +617,8 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
           slicer.mrmlScene.RemoveNode(loadedOutputTransformNode)
         else:
           self.addLog("Failed to load output transform from "+outputTransformPath)
+        outputTransformNode.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole(), movingVolumeNode.GetID())
+        outputTransformNode.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole(), fixedVolumeNode.GetID())
 
     # Clean up
     if self.deleteTemporaryFiles:
