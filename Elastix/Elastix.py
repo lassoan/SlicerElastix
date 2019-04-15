@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import unittest
 import vtk, qt, ctk, slicer
@@ -327,7 +328,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
         movingVolumeMaskNode = self.movingVolumeMaskSelector.currentNode())
 
     except Exception as e:
-      print e
+      print(e)
       self.addLog("Error: {0}".format(e.message))
       import traceback
       traceback.print_exc()
