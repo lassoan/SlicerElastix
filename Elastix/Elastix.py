@@ -4,6 +4,7 @@ import unittest
 import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
 import logging
+import sys
 
 #
 # Elastix
@@ -329,7 +330,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
 
     except Exception as e:
       print(e)
-      self.addLog("Error: {0}".format(e.message))
+      self.addLog("Error: {0}".format(e))
       import traceback
       traceback.print_exc()
     finally:
@@ -478,7 +479,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     import subprocess
     executableFilePath = os.path.join(self.getElastixBinDir(),self.elastixFilename)
     logging.info("Register volumes using: "+executableFilePath+": "+repr(cmdLineArguments))
-    if subprocess.mswindows:
+    if sys.platform == 'win32':
       return subprocess.Popen([executableFilePath] + cmdLineArguments, env=self.getElastixEnv(),
                             stdout=subprocess.PIPE, universal_newlines=True, startupinfo=self.getStartupInfo())
     else:
@@ -490,7 +491,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     import subprocess
     executableFilePath = os.path.join(self.getElastixBinDir(), self.transformixFilename)
     logging.info("Generate output using: " + executableFilePath + ": " + repr(cmdLineArguments))
-    if subprocess.mswindows:
+    if sys.platform == 'win32':
       return subprocess.Popen([os.path.join(self.getElastixBinDir(),self.transformixFilename)] + cmdLineArguments, env=self.getElastixEnv(),
                             stdout=subprocess.PIPE, universal_newlines = True, startupinfo=self.getStartupInfo())
     else:
