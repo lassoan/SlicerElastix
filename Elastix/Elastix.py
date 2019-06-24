@@ -619,8 +619,9 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
           slicer.mrmlScene.RemoveNode(loadedOutputTransformNode)
         else:
           self.addLog("Failed to load output transform from "+outputTransformPath)
-        outputTransformNode.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole(), movingVolumeNode.GetID())
-        outputTransformNode.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole(), fixedVolumeNode.GetID())
+        if slicer.app.majorVersion >= 5 or (slicer.app.majorVersion >= 4 and slicer.app.minorVersion >= 11): 
+          outputTransformNode.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole(), movingVolumeNode.GetID())
+          outputTransformNode.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole(), fixedVolumeNode.GetID())
 
     # Clean up
     if self.deleteTemporaryFiles:
