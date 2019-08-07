@@ -586,17 +586,21 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
       #Create temp results directory
       resultResampleDir = os.path.join(tempDir, 'result-resample')
       qt.QDir().mkpath(resultResampleDir)
+      inputParamsTransformix = []
+      inputParamsTransformix += ['-tp', resultTransformDir+'/TransformParameters.'+str(len(parameterFilenames)-1)+'.txt']
+      inputParamsTransformix += ['-out', resultResampleDir]
+      if outputVolumeNode:
+        inputParamsTransformix += ['-in', os.path.join(inputDir, 'moving.mha')]
+
+      if outputTransformNode:
+        inputParamsTransformix += ['-def', 'all']
+
+      #Run Transformix
+      tp = self.startTransformix(inputParamsTransformix)
+      self.logProcessOutput(tp)
 
       if outputVolumeNode:
-        # Resample
-        inputParamsTransformix = []
-        inputParamsTransformix += ['-tp', resultTransformDir+'/TransformParameters.'+str(len(parameterFilenames)-1)+'.txt']
-        inputParamsTransformix += ['-in', os.path.join(inputDir, 'moving.mha')]
-        inputParamsTransformix += ['-out', resultResampleDir]
-        if outputTransformNode:
-            inputParamsTransformix += ['-def', 'all']
-        tp = self.startTransformix(inputParamsTransformix)
-        self.logProcessOutput(tp)       
+        #Load volume in Slicer
         outputVolumePath = os.path.join(resultResampleDir, "result.mhd")
         [success, loadedOutputVolumeNode] = slicer.util.loadVolume(outputVolumePath, returnNode = True)
         if success:
@@ -607,28 +611,9 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
           slicer.mrmlScene.RemoveNode(loadedOutputVolumeNode)
         else:
           self.addLog("Failed to load output volume from "+outputVolumePath)
-        if outputTransformNode:
-            outputTransformPath = os.path.join(resultResampleDir, "deformationField.mhd")
-            [success, loadedOutputTransformNode] = slicer.util.loadTransform(outputTransformPath, returnNode = True)
-            if success:
-              if loadedOutputTransformNode.GetReadAsTransformToParent():
-                outputTransformNode.SetAndObserveTransformToParent(loadedOutputTransformNode.GetTransformToParent())
-              else:
-                outputTransformNode.SetAndObserveTransformFromParent(loadedOutputTransformNode.GetTransformFromParent())
-              slicer.mrmlScene.RemoveNode(loadedOutputTransformNode)
-            else:
-              self.addLog("Failed to load output transform from "+outputTransformPath)
-            if slicer.app.majorVersion >= 5 or (slicer.app.majorVersion >= 4 and slicer.app.minorVersion >= 11): 
-              outputTransformNode.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole(), movingVolumeNode.GetID())
-              outputTransformNode.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole(), fixedVolumeNode.GetID())
-      elif outputTransformNode:
-        #If only output transform and no output volume
-        inputParamsTransformix = []
-        inputParamsTransformix += ['-tp', resultTransformDir+'/TransformParameters.'+str(len(parameterFilenames)-1)+'.txt']
-        inputParamsTransformix += ['-out', resultResampleDir]
-        inputParamsTransformix += ['-def', 'all']
-        tp = self.startTransformix(inputParamsTransformix)
-        self.logProcessOutput(tp)
+
+      if outputTransformNode:
+        #Load transform in Slicer
         outputTransformPath = os.path.join(resultResampleDir, "deformationField.mhd")
         [success, loadedOutputTransformNode] = slicer.util.loadTransform(outputTransformPath, returnNode = True)
         if success:
