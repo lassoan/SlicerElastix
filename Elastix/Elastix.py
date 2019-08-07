@@ -580,23 +580,27 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     ep = self.startElastix(inputParamsElastix)
     self.logProcessOutput(ep)
 
-    # Resample
+    # Write results
     if not self.abortRequested:
+      
+      #Create temp results directory
       resultResampleDir = os.path.join(tempDir, 'result-resample')
       qt.QDir().mkpath(resultResampleDir)
       inputParamsTransformix = []
       inputParamsTransformix += ['-tp', resultTransformDir+'/TransformParameters.'+str(len(parameterFilenames)-1)+'.txt']
-      inputParamsTransformix += ['-in', os.path.join(inputDir, 'moving.mha')]
       inputParamsTransformix += ['-out', resultResampleDir]
+      if outputVolumeNode:
+        inputParamsTransformix += ['-in', os.path.join(inputDir, 'moving.mha')]
+
       if outputTransformNode:
         inputParamsTransformix += ['-def', 'all']
+
+      #Run Transformix
       tp = self.startTransformix(inputParamsTransformix)
       self.logProcessOutput(tp)
 
-    # Write results
-    if not self.abortRequested:
-
       if outputVolumeNode:
+        #Load volume in Slicer
         outputVolumePath = os.path.join(resultResampleDir, "result.mhd")
         [success, loadedOutputVolumeNode] = slicer.util.loadVolume(outputVolumePath, returnNode = True)
         if success:
@@ -609,6 +613,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
           self.addLog("Failed to load output volume from "+outputVolumePath)
 
       if outputTransformNode:
+        #Load transform in Slicer
         outputTransformPath = os.path.join(resultResampleDir, "deformationField.mhd")
         [success, loadedOutputTransformNode] = slicer.util.loadTransform(outputTransformPath, returnNode = True)
         if success:
