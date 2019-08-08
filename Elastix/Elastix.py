@@ -486,6 +486,47 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
       return subprocess.Popen([executableFilePath] + cmdLineArguments, env=self.getElastixEnv(),
                             stdout=subprocess.PIPE, universal_newlines=True)
 
+  def eulerToSlicerTransform(self, fileContents, outputLinearTransformNode):
+    import numpy as np
+    from math import sin, cos
+    fileContents = fileContents.split("\n") 
+    transformStr = [s for s in fileContents if "(TransformParameters " in s][0]
+    transformParams = transformStr.strip("()").split(" ")
+    transformParams.pop(0)
+    transformParams = [ float(x) for x in transformParams ]
+    if '(ComputeZYX "true")' in fileContents:
+        computeZYX = True
+    else:
+        computeZYX = False
+    
+    if '(Transform "EulerTransform")' in fileContents:
+        [rx,ry,rz]=transformParams[0:3]
+        [tx,ty,tz]=transformParams[3:6]
+    else:
+        [rx,ry,rz] = [0, 0, 0]
+        [tx,ty,tz]=transformParams[0:3]
+    
+    rotX = np.array([[1.0, 0.0, 0.0], [0.0, cos(rx), -sin(rx)], [0.0, sin(rx), cos(rx)]])
+    rotY = np.array([[cos(ry), 0.0, sin(ry)], [0.0, 1.0, 0.0], [-sin(ry), 0.0, cos(ry)]])
+    rotZ = np.array([[cos(rz), -sin(rz), 0.0], [sin(rz), cos(rz), 0.0], [0.0, 0.0, 1.0]])
+    
+    if computeZYX:
+        # Aply the rotation first around Y then X then Z
+        fixedToMovingDirection = np.dot(np.dot(rotZ, rotY), rotX)
+    else:
+        # Like VTK transformation order
+        fixedToMovingDirection = np.dot(np.dot(rotZ, rotX), rotY)
+    
+    fixedToMoving = np.eye(4)
+    fixedToMoving[0:3,0:3] = fixedToMovingDirection
+    fixedToMoving[0:3,3] = [tx, ty, tz]
+
+    # Create Slicer linear transform ("to parent" direction, in RAS)
+    ras2lps = np.array([[-1,0,0,0],[0,-1,0,0],[0,0,1,0],[0,0,0,1]])
+    movingToFixed = np.dot(np.dot(ras2lps, np.linalg.inv(fixedToMoving)), ras2lps)
+    slicer.util.updateTransformMatrixFromArray(outputLinearTransformNode, movingToFixed)
+
+
   def startTransformix(self, cmdLineArguments):
     self.addLog("Generate output...")
     import subprocess
@@ -583,6 +624,16 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     # Write results
     if not self.abortRequested:
       
+      #Load Linear Transform if available
+      linearTransformFlag = False
+      if outputTransformNode:
+        f = open(resultTransformDir+'/TransformParameters.'+str(len(parameterFilenames)-1)+'.txt', 'r')
+        fileContents = f.read()
+        f.close()
+        if ('(Transform "EulerTransform")' in fileContents) or ('(Transform "TranslationTransform")' in fileContents):
+          linearTransformFlag = True
+          self.eulerToSlicerTransform(fileContents, outputTransformNode)
+
       #Create temp results directory
       resultResampleDir = os.path.join(tempDir, 'result-resample')
       qt.QDir().mkpath(resultResampleDir)
@@ -596,8 +647,9 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
         inputParamsTransformix += ['-def', 'all']
 
       #Run Transformix
-      tp = self.startTransformix(inputParamsTransformix)
-      self.logProcessOutput(tp)
+      if (not linearTransformFlag) or (outputVolumeNode):
+        tp = self.startTransformix(inputParamsTransformix)
+        self.logProcessOutput(tp)
 
       if outputVolumeNode:
         #Load volume in Slicer
@@ -612,7 +664,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
         else:
           self.addLog("Failed to load output volume from "+outputVolumePath)
 
-      if outputTransformNode:
+      if (outputTransformNode) and (not linearTransformFlag):
         #Load transform in Slicer
         outputTransformPath = os.path.join(resultResampleDir, "deformationField.mhd")
         [success, loadedOutputTransformNode] = slicer.util.loadTransform(outputTransformPath, returnNode = True)
