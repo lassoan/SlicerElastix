@@ -567,15 +567,17 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     # Find and parse '(TransformParameters 0.022507 0.013835 0.013726 7.760838 4.879223 -0.014589)'
     transformParams = self.getElastixParameters(fileContents, "TransformParameters", type="float")
 
-    # Find and prase '(ComputeZYX "false")'
-    computeZYX = (self.getElastixParameters(fileContents, "ComputeZYX") == "true")
-    
     if transformType == "EulerTransform":
         [rx,ry,rz]=transformParams[0:3]
         [tx,ty,tz]=transformParams[3:6]
+        # Find and parse '(ComputeZYX "false")'
+        computeZYX = (self.getElastixParameters(fileContents, "ComputeZYX") == "true")
+        #Parse center of rotation point
+        centerOfRotation = self.getElastixParameters(fileContents, "CenterOfRotationPoint", type="float")
     elif transformType == "TranslationTransform":
         [rx,ry,rz] = [0, 0, 0]
         [tx,ty,tz]=transformParams[0:3]
+        computeZYX = None
     
     rotX = np.array([[1.0, 0.0, 0.0], [0.0, cos(rx), -sin(rx)], [0.0, sin(rx), cos(rx)]])
     rotY = np.array([[cos(ry), 0.0, sin(ry)], [0.0, 1.0, 0.0], [-sin(ry), 0.0, cos(ry)]])
@@ -587,10 +589,17 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     else:
         # Like VTK transformation order
         fixedToMovingDirection = np.dot(np.dot(rotZ, rotX), rotY)
-    
+
     fixedToMoving = np.eye(4)
     fixedToMoving[0:3,0:3] = fixedToMovingDirection
-    fixedToMoving[0:3,3] = [tx, ty, tz]
+    if transformType == "EulerTransform":
+        offset = np.array([tx,ty,tz]) + np.array(centerOfRotation)
+        offset[0] -= np.dot(fixedToMovingDirection[0,:], np.array(centerOfRotation))
+        offset[1] -= np.dot(fixedToMovingDirection[1,:], np.array(centerOfRotation))
+        offset[2] -= np.dot(fixedToMovingDirection[2,:], np.array(centerOfRotation))
+        fixedToMoving[0:3,3] = offset
+    else:
+        fixedToMoving[0:3,3] = [tx, ty, tz]
 
     # Create Slicer linear transform ("to parent" direction, in RAS)
     ras2lps = np.array([[-1,0,0,0],[0,-1,0,0],[0,0,1,0],[0,0,0,1]])
@@ -951,3 +960,4 @@ def updateVTKMatrixFromArray(vmatrix, narray):
   if narray.shape != (matrixSize, matrixSize):
     raise RuntimeError("Input narray size must match output vmatrix size ({0}x{0})".format(matrixSize))
   vmatrix.DeepCopy(narray.ravel())
+  
