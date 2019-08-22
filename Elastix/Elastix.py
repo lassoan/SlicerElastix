@@ -765,10 +765,29 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     for [volumeNode, filename, paramName] in inputVolumes:
       if not volumeNode:
         continue
+      # Save original file paths
+      originalFilePath = ""
+      originalFilePaths = []
+      volumeStorageNode = volumeNode.GetStorageNode()
+      if volumeStorageNode:
+        originalFilePath = volumeStorageNode.GetFileName()
+        for fileIndex in range(volumeStorageNode.GetNumberOfFileNames()):
+          originalFilePaths.append(volumeStorageNode.GetNthFileName(fileIndex))
+      # Save to new location
       filePath = os.path.join(inputDir, filename)
       slicer.util.saveNode(volumeNode, filePath, {"useCompression": False})
       inputParamsElastix.append(paramName)
       inputParamsElastix.append(filePath)
+      # Restore original file paths
+      if volumeStorageNode:
+        volumeStorageNode.ResetFileNameList()
+        volumeStorageNode.SetFileName(originalFilePath)
+        for fileIndex in range(volumeStorageNode.GetNumberOfFileNames()):
+          volumeStorageNode.AddFileName(originalFilePaths[fileIndex])
+      else:
+        # temporary storage node was created, remove it to restore original state
+        volumeStorageNode = volumeNode.GetStorageNode()
+        slicer.mrmlScene.RemoveNode(volumeStorageNode)
 
     # Specify output location
     resultTransformDir = os.path.join(tempDir, 'result-transform')
