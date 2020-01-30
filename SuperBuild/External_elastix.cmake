@@ -28,6 +28,15 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     set(${proj}_cxx_flags "${ep_common_cxx_flags} -Wno-inconsistent-missing-override")
   endif()
 
+  message(STATUS "ITK version: ${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}.${ITK_VERSION_PATCH}.")
+  if(${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR} VERSION_LESS 5.0)
+    set(ELASTIX_GIT_REPOSITORY "${git_protocol}://github.com/SuperElastix/elastix.git")
+    set(ELASTIX_GIT_TAG "419313e9cc12727d73c7e6e47fbdf960aa1218b9") # latest commit on "develop" branch as if 2019-10-13
+  else()
+    set(ELASTIX_GIT_REPOSITORY "${git_protocol}://github.com/lassoan/elastix.git")
+    set(ELASTIX_GIT_TAG "ITK-v5.1rc01") # latest commit on "develop" branch as of 2019-11-28 with fixes due to named enums in ITK5
+  endif()
+
   ExternalProject_Add(${proj}
     # Slicer
     ${${proj}_EP_ARGS}
@@ -35,8 +44,8 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     #SOURCE_SUBDIR src # requires CMake 3.7 or later
     BINARY_DIR ${proj}-build
     INSTALL_DIR ${${proj}_INSTALL_DIR}
-    GIT_REPOSITORY "${git_protocol}://github.com/SuperElastix/elastix.git"
-    GIT_TAG "419313e9cc12727d73c7e6e47fbdf960aa1218b9"  # latest commit on "develop" branch
+    GIT_REPOSITORY ${ELASTIX_GIT_REPOSITORY}
+    GIT_TAG ${ELASTIX_GIT_TAG}
     #--Patch step-------------
     PATCH_COMMAND ${CMAKE_COMMAND} -Delastix_SRC_DIR=${CMAKE_BINARY_DIR}/${proj}
       -P ${CMAKE_CURRENT_LIST_DIR}/${proj}_patch.cmake
