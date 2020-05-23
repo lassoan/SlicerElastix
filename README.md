@@ -24,3 +24,10 @@ This extension makes available Elastix medical image registration toolkit (http:
 * To display displacement field: in Transforms module, select the Output transform and in Display section enable visualization in slice and/or 3D views.
 * To apply transforms to other nodes: use Transforms module (or in Data module / Transform hierarchy tab: drag-and-drop nodes under the Output transform).
 * To save Output volume or transform, select menu: File / Save.
+
+
+## Customize registration parameters
+
+* Click `Show database folder` in Advanced section, which will open the tolder that contains all registration preset parameter files
+* Edit the parameter set database file (`ElastixParameterSetDatabase.xml`) to edit or add a new preset (each `ParameterSet` element defines one preset)
+* To modify parameters of a registration step, edit the corresponding `.txt` parameter file
