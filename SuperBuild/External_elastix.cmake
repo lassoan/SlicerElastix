@@ -23,6 +23,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   set(${proj}_INSTALL_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
   set(${proj}_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+  set(${proj}_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 
   if (APPLE)
     set(${proj}_cxx_flags "${ep_common_cxx_flags} -Wno-inconsistent-missing-override")
@@ -44,7 +45,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     ${${proj}_EP_ARGS}
     SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}
     #SOURCE_SUBDIR src # requires CMake 3.7 or later
-    BINARY_DIR ${proj}-build
+    BINARY_DIR ${${proj}_BINARY_DIR}
     INSTALL_DIR ${${proj}_INSTALL_DIR}
     GIT_REPOSITORY ${ELASTIX_GIT_REPOSITORY}
     GIT_TAG ${ELASTIX_GIT_TAG}
