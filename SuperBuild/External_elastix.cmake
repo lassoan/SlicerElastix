@@ -34,10 +34,8 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     set(ELASTIX_GIT_REPOSITORY "${git_protocol}://github.com/SuperElastix/elastix.git")
     set(ELASTIX_GIT_TAG "419313e9cc12727d73c7e6e47fbdf960aa1218b9") # latest commit on "develop" branch as if 2019-10-13
   else()
-    set(ELASTIX_GIT_REPOSITORY "${git_protocol}://github.com/lassoan/elastix.git")
-    # This branch contains SuperElastix/elastix "develop" branch as of 2020-04-12
-    # with fix for build error caused by recent ITK5 changes.
-    set(ELASTIX_GIT_TAG "ITK-v5.1rc03")
+    set(ELASTIX_GIT_REPOSITORY "${git_protocol}://github.com/SuperElastix/elastix.git")
+    set(ELASTIX_GIT_TAG "5.0.1")
   endif()
 
   ExternalProject_Add(${proj}
