@@ -35,7 +35,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     set(ELASTIX_GIT_TAG "419313e9cc12727d73c7e6e47fbdf960aa1218b9") # latest commit on "develop" branch as if 2019-10-13
   else()
     set(ELASTIX_GIT_REPOSITORY "${git_protocol}://github.com/SuperElastix/elastix.git")
-    set(ELASTIX_GIT_TAG "5.0.1")
+    set(ELASTIX_GIT_TAG "3c3d37af36f62aca17386f32a7ab3294d33519e1") # latest commit on "master" branch as of 2021-03-26
   endif()
 
   ExternalProject_Add(${proj}
@@ -47,9 +47,6 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     INSTALL_DIR ${${proj}_INSTALL_DIR}
     GIT_REPOSITORY ${ELASTIX_GIT_REPOSITORY}
     GIT_TAG ${ELASTIX_GIT_TAG}
-    #--Patch step-------------
-    PATCH_COMMAND ${CMAKE_COMMAND} -Delastix_SRC_DIR=${CMAKE_BINARY_DIR}/${proj}
-      -P ${CMAKE_CURRENT_LIST_DIR}/${proj}_patch.cmake
     #--Configure step-------------
     CMAKE_CACHE_ARGS
       -DSubversion_SVN_EXECUTABLE:STRING=${Subversion_SVN_EXECUTABLE}
