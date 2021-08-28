@@ -212,7 +212,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
     advancedFormLayout = qt.QFormLayout(self.advancedCollapsibleButton)
 
     self.forceDisplacementFieldOutputChecbox = qt.QCheckBox(" ")
-    self.forceDisplacementFieldOutputChecbox.checked = False
+    self.forceDisplacementFieldOutputChecbox.checked = True
     self.forceDisplacementFieldOutputChecbox.setToolTip("If this checkbox is checked then computed transform will be always returned as a grid transform (displacement field). This may result in more accurate reproduction of the original Elastix transform but requires magnitudes more storage space.")
     advancedFormLayout.addRow("Force grid output transform:", self.forceDisplacementFieldOutputChecbox)
 
@@ -744,7 +744,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     return dirPath
 
   def registerVolumes(self, fixedVolumeNode, movingVolumeNode, parameterFilenames = None, outputVolumeNode = None, outputTransformNode = None,
-    fixedVolumeMaskNode = None, movingVolumeMaskNode = None, forceDisplacementFieldOutputTransform = False):
+    fixedVolumeMaskNode = None, movingVolumeMaskNode = None, forceDisplacementFieldOutputTransform = True):
 
     self.abortRequested = False
     tempDir = self.createTempDirectory()
