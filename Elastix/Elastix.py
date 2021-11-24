@@ -423,7 +423,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
   def getCustomElastixBinDir(self):
     settings = qt.QSettings()
     if settings.contains(self.customElastixBinDirSettingsKey):
-      return slicer.util.toVTKString(settings.value(self.customElastixBinDirSettingsKey))
+      return settings.value(self.customElastixBinDirSettingsKey)
     return ''
 
   def setCustomElastixBinDir(self, customPath):
@@ -578,11 +578,11 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
         [rx,ry,rz] = [0, 0, 0]
         [tx,ty,tz]=transformParams[0:3]
         computeZYX = None
-    
+
     rotX = np.array([[1.0, 0.0, 0.0], [0.0, cos(rx), -sin(rx)], [0.0, sin(rx), cos(rx)]])
     rotY = np.array([[cos(ry), 0.0, sin(ry)], [0.0, 1.0, 0.0], [-sin(ry), 0.0, cos(ry)]])
     rotZ = np.array([[cos(rz), -sin(rz), 0.0], [sin(rz), cos(rz), 0.0], [0.0, 0.0, 1.0]])
-    
+
     if computeZYX:
         # Aply the rotation first around Y then X then Z
         fixedToMovingDirection = np.dot(np.dot(rotZ, rotY), rotX)
@@ -605,7 +605,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     ras2lps = np.array([[-1,0,0,0],[0,-1,0,0],[0,0,1,0],[0,0,0,1]])
     #movingToFixed = np.dot(np.dot(ras2lps, np.linalg.inv(fixedToMoving)), ras2lps)
     fixedToMoving = np.dot(np.dot(ras2lps, fixedToMoving), ras2lps)
-    
+
     linearTransform = vtk.vtkTransform()
     #linearTransform.SetMatrix(slicer.util.vtkMatrixFromArray(fixedToMoving))
     linearTransform.SetMatrix(vtkMatrixFromArray(fixedToMoving))
@@ -700,23 +700,34 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     logging.info("Generate output using: " + executableFilePath + ": " + repr(cmdLineArguments))
     if sys.platform == 'win32':
       return subprocess.Popen([os.path.join(self.getElastixBinDir(),self.transformixFilename)] + cmdLineArguments, env=self.getElastixEnv(),
-                            stdout=subprocess.PIPE, universal_newlines = True, startupinfo=self.getStartupInfo())
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines = True, startupinfo=self.getStartupInfo())
     else:
       return subprocess.Popen([os.path.join(self.getElastixBinDir(),self.transformixFilename)] + cmdLineArguments, env=self.getElastixEnv(),
-                            stdout=subprocess.PIPE, universal_newlines = True)
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines = True)
 
   def logProcessOutput(self, process):
     # save process output (if not logged) so that it can be displayed in case of an error
     processOutput = ''
     import subprocess
-    for stdout_line in iter(process.stdout.readline, ""):
-      if self.logStandardOutput:
-        self.addLog(stdout_line.rstrip())
-      else:
-        processOutput += stdout_line.rstrip() + '\n'
+
+    while True:
+      try:
+        stdout_line = process.stdout.readline()
+        if not stdout_line:
+          break
+        stdout_line = stdout_line.rstrip()
+        if self.logStandardOutput:
+          self.addLog(stdout_line)
+        else:
+          processOutput += stdout_line + '\n'
+      except UnicodeDecodeError as e:
+        # Probably system locale is set to non-English, we cannot easily capture process output.
+        # Code page conversion happens because `universal_newlines=True` sets process output to text mode.
+        pass
       slicer.app.processEvents()  # give a chance to click Cancel button
       if self.abortRequested:
         process.kill()
+
     process.stdout.close()
     return_code = process.wait()
     if return_code:
@@ -808,7 +819,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
 
     # Write results
     if not self.abortRequested:
-      
+
       transformFileName = resultTransformDir+'/TransformParameters.'+str(len(parameterFilenames)-1)+'.txt'
 
       #Load Linear Transform if available
@@ -848,29 +859,29 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
       if outputVolumeNode:
         #Load volume in Slicer
         outputVolumePath = os.path.join(resultResampleDir, "result.mhd")
-        [success, loadedOutputVolumeNode] = slicer.util.loadVolume(outputVolumePath, returnNode = True)
-        if success:
+        try:
+          loadedOutputVolumeNode = slicer.util.loadVolume(outputVolumePath)
           outputVolumeNode.SetAndObserveImageData(loadedOutputVolumeNode.GetImageData())
           ijkToRas = vtk.vtkMatrix4x4()
           loadedOutputVolumeNode.GetIJKToRASMatrix(ijkToRas)
           outputVolumeNode.SetIJKToRASMatrix(ijkToRas)
           slicer.mrmlScene.RemoveNode(loadedOutputVolumeNode)
-        else:
+        except:
           self.addLog("Failed to load output volume from "+outputVolumePath)
 
       if (outputTransformNode) and (not elastixTransformFileImported):
         #Load transform in Slicer
         outputTransformPath = os.path.join(resultResampleDir, "deformationField.mhd")
-        [success, loadedOutputTransformNode] = slicer.util.loadTransform(outputTransformPath, returnNode = True)
-        if success:
+        try:
+          loadedOutputTransformNode = slicer.util.loadTransform(outputTransformPath)
           if loadedOutputTransformNode.GetReadAsTransformToParent():
             outputTransformNode.SetAndObserveTransformToParent(loadedOutputTransformNode.GetTransformToParent())
           else:
             outputTransformNode.SetAndObserveTransformFromParent(loadedOutputTransformNode.GetTransformFromParent())
           slicer.mrmlScene.RemoveNode(loadedOutputTransformNode)
-        else:
+        except:
           self.addLog("Failed to load output transform from "+outputTransformPath)
-        if slicer.app.majorVersion >= 5 or (slicer.app.majorVersion >= 4 and slicer.app.minorVersion >= 11): 
+        if slicer.app.majorVersion >= 5 or (slicer.app.majorVersion >= 4 and slicer.app.minorVersion >= 11):
           outputTransformNode.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetMovingNodeReferenceRole(), movingVolumeNode.GetID())
           outputTransformNode.AddNodeReferenceID(slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole(), fixedVolumeNode.GetID())
 
@@ -979,4 +990,4 @@ def updateVTKMatrixFromArray(vmatrix, narray):
   if narray.shape != (matrixSize, matrixSize):
     raise RuntimeError("Input narray size must match output vmatrix size ({0}x{0})".format(matrixSize))
   vmatrix.DeepCopy(narray.ravel())
-  
+
