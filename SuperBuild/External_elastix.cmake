@@ -35,7 +35,7 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     set(ELASTIX_GIT_TAG "419313e9cc12727d73c7e6e47fbdf960aa1218b9") # latest commit on "develop" branch as if 2019-10-13
   else()
     set(ELASTIX_GIT_REPOSITORY "${git_protocol}://github.com/SuperElastix/elastix.git")
-    set(ELASTIX_GIT_TAG "d03e0c5fdbd40ca20aea624325a0cc48502f652f") # latest commit on "master" branch as of 2021-03-28
+    set(ELASTIX_GIT_TAG "a0cf5235691ab0e7416600ed29db5abf2ff8ffe2") # latest commit on "develop" branch as of 2022-02-18
   endif()
 
   ExternalProject_Add(${proj}
