@@ -1,6 +1,8 @@
 # SlicerElastix
 This extension makes available Elastix medical image registration toolkit (http://elastix.isi.uu.nl/) available in Slicer.
 
+![](Screenshot01.jpg)
+
 ## Installation
 
 * Download and install latest stable release or a recent nightly release of 3D Slicer (https://download.slicer.org).
