@@ -17,10 +17,6 @@ endif()
 
 if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
-  if(NOT DEFINED git_protocol)
-    set(git_protocol "https")
-  endif()
-
   set(${proj}_INSTALL_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
   set(${proj}_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
   set(${proj}_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
@@ -31,10 +27,10 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
 
   message(STATUS "ITK version: ${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}.${ITK_VERSION_PATCH}.")
   if(DEFINED ITK_VERSION_MAJOR AND ${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR} VERSION_LESS 5.0)
-    set(ELASTIX_GIT_REPOSITORY "${git_protocol}://github.com/SuperElastix/elastix.git")
+    set(ELASTIX_GIT_REPOSITORY "$https://github.com/SuperElastix/elastix.git")
     set(ELASTIX_GIT_TAG "419313e9cc12727d73c7e6e47fbdf960aa1218b9") # latest commit on "develop" branch as if 2019-10-13
   else()
-    set(ELASTIX_GIT_REPOSITORY "${git_protocol}://github.com/SuperElastix/elastix.git")
+    set(ELASTIX_GIT_REPOSITORY "https://github.com/SuperElastix/elastix.git")
     set(ELASTIX_GIT_TAG "a0cf5235691ab0e7416600ed29db5abf2ff8ffe2") # latest commit on "develop" branch as of 2022-02-18
   endif()
 
