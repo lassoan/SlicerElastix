@@ -32,7 +32,7 @@
 // ******************** Multiresolution **********************
 
 (NumberOfResolutions 3)
-(ImagePyramidSchedule 8 8 2  4 4 1  1 1 0.5 )
+(ImagePyramidSchedule 8 8 2  4 4 1  1 1 1 )
 
 // ******************* Optimizer ****************************
 
