@@ -52,7 +52,7 @@
 //Default pixel value for pixels that come from outside the picture:
 (DefaultPixelValue 0)
 
-(ImagePyramidSchedule 8.0 4.0 4.0 2.0 1.0)
+(ImagePyramidSchedule 8 4 4 2 1)
 
 //SP: Param_a in each resolution level. a_k = a/(A+k+1)^alpha
 (SP_a 500.0)
