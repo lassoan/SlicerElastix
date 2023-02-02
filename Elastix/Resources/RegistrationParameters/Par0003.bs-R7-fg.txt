@@ -31,6 +31,10 @@
 (GridSpacingSchedule 1.0 1.0 1.0 1.0 1.0 1.0 1.0)
 (HowToCombineTransforms "Compose")
 
+//Save composite ITK transform
+(ITKTransformOutputFileNameExtension "h5")
+(WriteITKCompositeTransform "true")
+
 
 // ********** Optimizer
 

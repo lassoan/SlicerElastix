@@ -21,6 +21,10 @@
 (AutomaticTransformInitialization "true")
 (HowToCombineTransforms "Compose")
 
+//Save composite ITK transform
+(ITKTransformOutputFileNameExtension "h5")
+(WriteITKCompositeTransform "true")
+
 // ******************* Similarity measure *********************
 
 (NumberOfHistogramBins 32)

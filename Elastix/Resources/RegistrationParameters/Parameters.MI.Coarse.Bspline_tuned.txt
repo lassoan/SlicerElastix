@@ -33,6 +33,10 @@
 //160mm every 10 voxel, 80mm, every 10 voxel, 40mm, every 10 voxel, 20mm, every 10 voxel, 10mm, every 10 voxel
 (HowToCombineTransforms "Compose")
 
+//Save composite ITK transform
+(ITKTransformOutputFileNameExtension "h5")
+(WriteITKCompositeTransform "true")
+
 
 // ********** Optimizer
 

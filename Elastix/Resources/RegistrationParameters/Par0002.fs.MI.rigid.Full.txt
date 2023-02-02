@@ -26,6 +26,10 @@
 (AutomaticTransformInitialization "true")
 (HowToCombineTransforms "Compose")
 
+//Save composite ITK transform
+(ITKTransformOutputFileNameExtension "h5")
+(WriteITKCompositeTransform "true")
+
 
 // ********** Optimizer
 (FullSearchSpace0 "t_z" 5 -10.0 30.0 0.1)

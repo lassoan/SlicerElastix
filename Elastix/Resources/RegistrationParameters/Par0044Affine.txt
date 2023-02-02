@@ -47,6 +47,10 @@
 // It does not influence the results very much.
 (HowToCombineTransforms "Compose")
 
+//Save composite ITK transform
+(ITKTransformOutputFileNameExtension "h5")
+(WriteITKCompositeTransform "true")
+
 // Number of spatial samples used
 (ImageSampler "RandomCoordinate")
 (FixedImageBSplineInterpolationOrder 3 )
