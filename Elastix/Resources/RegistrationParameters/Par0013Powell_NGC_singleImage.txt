@@ -21,6 +21,10 @@
 (Scales 57.3)
 (AutomaticTransformInitialization "false")
 (HowToCombineTransforms "Compose")
+
+//Save composite ITK transform
+(ITKTransformOutputFileNameExtension "h5")
+(WriteITKCompositeTransform "true")
 (CenterOfRotationPoint 0.0 0.0 0.0)
 
 // ******************* Similarity measure *********************

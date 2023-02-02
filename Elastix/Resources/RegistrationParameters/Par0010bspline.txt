@@ -25,6 +25,10 @@
 
 (HowToCombineTransforms "Compose")
 
+//Save composite ITK transform
+(ITKTransformOutputFileNameExtension "h5")
+(WriteITKCompositeTransform "true")
+
 (WriteTransformParametersEachIteration "false")
 (WriteTransformParametersEachResolution "false")
 (WriteResultImage "false")

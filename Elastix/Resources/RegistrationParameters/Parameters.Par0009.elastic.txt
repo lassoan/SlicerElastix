@@ -50,6 +50,10 @@
 // It does not influence the results very much.
 (HowToCombineTransforms "Compose")
 
+//Save composite ITK transform
+(ITKTransformOutputFileNameExtension "h5")
+(WriteITKCompositeTransform "true")
+
 // This is an important option. It defines the complexity of
 // the deformation field.
 // Final spacing of B-Spline grid (unit = size of 1 voxel)
