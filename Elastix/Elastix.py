@@ -687,11 +687,9 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
 
   def loadTransformFromFile(self, fileName, node):
     tmpNode = slicer.util.loadTransform(fileName)
-    if tmpNode.GetReadAsTransformToParent():
-      node.SetAndObserveTransformToParent(tmpNode.GetTransformToParent())
-    else:
-      node.SetAndObserveTransformFromParent(tmpNode.GetTransformFromParent())
+    node.CopyContent(tmpNode)
     slicer.mrmlScene.RemoveNode(tmpNode)
+
 class ElastixTest(ScriptedLoadableModuleTest):
   """
   This is the test case for your scripted module.
