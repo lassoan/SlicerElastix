@@ -595,7 +595,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
       if not volumeNode:
         continue
       filePath = os.path.join(inputDir, filename)
-      self.saveNodeToTemporaryLocation(volumeNode, filePath)
+      slicer.util.exportNode(volumeNode, filePath)
       inputParamsElastix.append(paramName)
       inputParamsElastix.append(filePath)
 
@@ -603,7 +603,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     if initialTransformNode is not None:
       # Save node
       initialTransformFile = os.path.join(inputDir, 'initialTransform.h5')
-      self.saveNodeToTemporaryLocation(initialTransformNode, initialTransformFile)
+      slicer.util.exportNode(initialTransformNode, initialTransformFile)
       # Save settings
       initialTransformParameterFile = os.path.join(inputDir, 'initialTransformParameter.txt')
       initialTransformSettings = ['(InitialTransformParametersFileName "NoInitialTransform")',\
@@ -696,28 +696,6 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
       shutil.rmtree(tempDir)
 
     self.addLog("Registration is completed")
-
-  def saveNodeToTemporaryLocation(self, node, filePath):
-      # Save original file paths
-      originalFilePath = ""
-      originalFilePaths = []
-      storageNode = node.GetStorageNode()
-      if storageNode:
-        originalFilePath = storageNode.GetFileName()
-        for fileIndex in range(storageNode.GetNumberOfFileNames()):
-          originalFilePaths.append(storageNode.GetNthFileName(fileIndex))
-      # Save to new location
-      slicer.util.saveNode(node, filePath, {"useCompression": False})
-      # Restore original file paths
-      if storageNode:
-        storageNode.ResetFileNameList()
-        storageNode.SetFileName(originalFilePath)
-        for fileIndex in range(storageNode.GetNumberOfFileNames()):
-          storageNode.AddFileName(originalFilePaths[fileIndex])
-      else:
-        # temporary storage node was created, remove it to restore original state
-        storageNode = node.GetStorageNode()
-        slicer.mrmlScene.RemoveNode(storageNode)
 
   def loadTransformFromFile(self, fileName, node):
     tmpNode = slicer.util.loadTransform(fileName)
