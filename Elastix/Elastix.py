@@ -248,6 +248,18 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
       "If value is empty then default elastix (bundled with SlicerElastix extension) will be used.")
     advancedFormLayout.addRow("Custom Elastix toolbox location:", self.customElastixBinDirSelector)
 
+    self.initialTransformSelector = slicer.qMRMLNodeComboBox()
+    self.initialTransformSelector.nodeTypes = ["vtkMRMLTransformNode","vtkMRMLLinearTransformNode"]
+    self.initialTransformSelector.addEnabled = False
+    self.initialTransformSelector.renameEnabled = False
+    self.initialTransformSelector.removeEnabled = True
+    self.initialTransformSelector.noneEnabled = True
+    self.initialTransformSelector.showHidden = False
+    self.initialTransformSelector.showChildNodeTypes = False
+    self.initialTransformSelector.setMRMLScene( slicer.mrmlScene )
+    self.initialTransformSelector.setToolTip( "Start the registration from the selected initial transform." )
+    advancedFormLayout.addRow("Initial transform: ", self.initialTransformSelector)
+
     #
     # Apply Button
     #
@@ -332,7 +344,8 @@ class ElastixWidget(ScriptedLoadableModuleWidget):
         outputTransformNode = self.outputTransformSelector.currentNode(),
         fixedVolumeMaskNode = self.fixedVolumeMaskSelector.currentNode(),
         movingVolumeMaskNode = self.movingVolumeMaskSelector.currentNode(),
-        forceDisplacementFieldOutputTransform = self.forceDisplacementFieldOutputChecbox.checked)
+        forceDisplacementFieldOutputTransform = self.forceDisplacementFieldOutputChecbox.checked,
+        initialTransformNode = self.initialTransformSelector.currentNode())
 
       # Apply computed transform to moving volume if output transform is computed to immediately see registration results
       if ( (self.outputTransformSelector.currentNode() is not None)
@@ -560,7 +573,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     return dirPath
 
   def registerVolumes(self, fixedVolumeNode, movingVolumeNode, parameterFilenames = None, outputVolumeNode = None, outputTransformNode = None,
-    fixedVolumeMaskNode = None, movingVolumeMaskNode = None, forceDisplacementFieldOutputTransform = True):
+    fixedVolumeMaskNode = None, movingVolumeMaskNode = None, forceDisplacementFieldOutputTransform = True, initialTransformNode = None):
 
     self.abortRequested = False
     tempDir = self.createTempDirectory()
@@ -581,29 +594,28 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     for [volumeNode, filename, paramName] in inputVolumes:
       if not volumeNode:
         continue
-      # Save original file paths
-      originalFilePath = ""
-      originalFilePaths = []
-      volumeStorageNode = volumeNode.GetStorageNode()
-      if volumeStorageNode:
-        originalFilePath = volumeStorageNode.GetFileName()
-        for fileIndex in range(volumeStorageNode.GetNumberOfFileNames()):
-          originalFilePaths.append(volumeStorageNode.GetNthFileName(fileIndex))
-      # Save to new location
       filePath = os.path.join(inputDir, filename)
-      slicer.util.saveNode(volumeNode, filePath, {"useCompression": False})
+      slicer.util.exportNode(volumeNode, filePath)
       inputParamsElastix.append(paramName)
       inputParamsElastix.append(filePath)
-      # Restore original file paths
-      if volumeStorageNode:
-        volumeStorageNode.ResetFileNameList()
-        volumeStorageNode.SetFileName(originalFilePath)
-        for fileIndex in range(volumeStorageNode.GetNumberOfFileNames()):
-          volumeStorageNode.AddFileName(originalFilePaths[fileIndex])
-      else:
-        # temporary storage node was created, remove it to restore original state
-        volumeStorageNode = volumeNode.GetStorageNode()
-        slicer.mrmlScene.RemoveNode(volumeStorageNode)
+
+    # Add initial transform
+    if initialTransformNode is not None:
+      # Save node
+      initialTransformFile = os.path.join(inputDir, 'initialTransform.h5')
+      slicer.util.exportNode(initialTransformNode, initialTransformFile)
+      # Save settings
+      initialTransformParameterFile = os.path.join(inputDir, 'initialTransformParameter.txt')
+      initialTransformSettings = ['(InitialTransformParametersFileName "NoInitialTransform")',\
+                                  '(HowToCombineTransforms "Compose")',\
+                                  '(Transform "File")',\
+                                  '(TransformFileName "%s")' % initialTransformFile,\
+                                  '\n']
+      with open(initialTransformParameterFile, 'w') as f:
+        f.write('\n'.join(initialTransformSettings))
+      # Add parameters
+      inputParamsElastix.append('-t0')
+      inputParamsElastix.append(initialTransformParameterFile)
 
     # Specify output location
     resultTransformDir = os.path.join(tempDir, 'result-transform')
