@@ -472,7 +472,6 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
     if not os.path.isfile(elastixParameterSetDatabasePath):
       raise ValueError("Failed to open parameter set database: "+elastixParameterSetDatabasePath)
     elastixParameterSetDatabaseXml = vtk.vtkXMLUtilities.ReadElementFromFile(elastixParameterSetDatabasePath)
-    elastixParameterSetDatabaseXml.UnRegister(None)
 
     # Create python list from XML for convenience
     self.registrationPresets = []
