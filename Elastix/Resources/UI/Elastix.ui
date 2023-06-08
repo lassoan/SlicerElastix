@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>629</width>
-    <height>764</height>
+    <width>391</width>
+    <height>790</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -157,7 +157,7 @@
          <bool>false</bool>
         </property>
         <property name="renameEnabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="interactionNodeSingletonTag">
          <string notr="true"/>
@@ -305,6 +305,9 @@
         <property name="noneEnabled">
          <bool>true</bool>
         </property>
+        <property name="renameEnabled">
+         <bool>true</bool>
+        </property>
         <property name="interactionNodeSingletonTag">
          <string notr="true"/>
         </property>
@@ -326,6 +329,9 @@
         <property name="noneEnabled">
          <bool>true</bool>
         </property>
+        <property name="renameEnabled">
+         <bool>true</bool>
+        </property>
         <property name="interactionNodeSingletonTag">
          <string notr="true"/>
         </property>
@@ -343,6 +349,23 @@
       <bool>false</bool>
      </property>
      <layout class="QFormLayout" name="formLayout_2">
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_13">
+        <property name="text">
+         <string>Force grid output transform:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QCheckBox" name="forceDisplacementFieldOutputCheckbox">
+        <property name="toolTip">
+         <string>If this checkbox is checked then computed transform will be always returned as a grid transform (displacement field).</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
       <item row="6" column="0">
        <widget class="QLabel" name="label_9">
         <property name="toolTip">
@@ -458,20 +481,10 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="label_13">
+      <item row="10" column="0">
+       <widget class="QLabel" name="label_14">
         <property name="text">
-         <string>Force grid output transform:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="1">
-       <widget class="QCheckBox" name="forceDisplacementFieldOutputCheckbox">
-        <property name="toolTip">
-         <string>If this checkbox is checked then computed transform will be always returned as a grid transform (displacement field).</string>
-        </property>
-        <property name="text">
-         <string/>
+         <string>Initial transform: </string>
         </property>
        </widget>
       </item>
@@ -506,13 +519,6 @@
         </property>
        </widget>
       </item>
-      <item row="10" column="0">
-       <widget class="QLabel" name="label_14">
-        <property name="text">
-         <string>Initial transform: </string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>
@@ -523,6 +529,11 @@
      </property>
      <property name="toolTip">
       <string>Run the algorithm.</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+	font: 16px;
+}</string>
      </property>
      <property name="text">
       <string>Apply</string>
@@ -583,5 +594,134 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>Elastix</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>fixedVolumeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>314</x>
+     <y>381</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>104</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>Elastix</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>fixedVolumeMaskSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>314</x>
+     <y>381</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>383</x>
+     <y>206</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>Elastix</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>movingVolumeMaskSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>314</x>
+     <y>381</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>383</x>
+     <y>210</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>Elastix</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>movingVolumeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>314</x>
+     <y>381</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>365</x>
+     <y>131</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>Elastix</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>parameterNodeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>314</x>
+     <y>381</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>361</x>
+     <y>45</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>Elastix</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>outputTransformSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>314</x>
+     <y>381</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>372</x>
+     <y>285</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>Elastix</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>outputVolumeSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>314</x>
+     <y>381</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>372</x>
+     <y>258</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>Elastix</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>initialTransformSelector</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>314</x>
+     <y>381</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>429</x>
+     <y>478</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
