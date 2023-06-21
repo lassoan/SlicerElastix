@@ -21,6 +21,7 @@ class Elastix(ScriptedLoadableModule):
     ScriptedLoadableModule.__init__(self, parent)
     self.parent.title = "General Registration (Elastix)"
     self.parent.categories = ["Registration"]
+    self.parent.associatedNodeTypes = ["vtkMRMLScriptedModuleNode"]
     self.parent.dependencies = []
     self.parent.contributors = ["Andras Lasso (PerkLab - Queen's University), Christian Herz (CHOP)"]
     self.parent.helpText = """Align volumes based on image content using <a href="http://elastix.isi.uu.nl/">Elastix medical image registration toolbox</a>.
@@ -53,6 +54,13 @@ class ElastixWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     VTKObservationMixin.__init__(self)  # needed for parameter node observation
     self._parameterNode = None
     self._updatingGUIFromParameterNode = False
+
+  def setEditedNode(self, node, role='', context=''):
+    self.setParameterNode(node)
+    return node is not None
+
+  def nodeEditable(self, node):
+    return 0.7 if node is not None and node.GetAttribute('ModuleName') == self.moduleName else 0.0
 
   def setup(self):
     ScriptedLoadableModuleWidget.setup(self)
@@ -127,7 +135,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       self.initializeParameterNode()
 
   def initializeParameterNode(self):
-    self.setParameterNode(self.logic.getParameterNode())
+    self.setParameterNode(self.logic.getParameterNode() if not self._parameterNode else self._parameterNode)
 
   def setParameterNode(self, inputParameterNode):
     if inputParameterNode:
