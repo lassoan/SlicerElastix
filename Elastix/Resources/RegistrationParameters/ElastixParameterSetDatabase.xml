@@ -10,7 +10,7 @@
       <File Name="Parameters_BSpline.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="default0"
+  <ParameterSet id="default-rigid"
     modality="generic rigid"
     content="all"
     description="'default' parameter files for starting elastix users"

@@ -346,17 +346,17 @@
       <string>Advanced</string>
      </property>
      <property name="collapsed">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <layout class="QFormLayout" name="formLayout_2">
-      <item row="5" column="0">
+      <item row="0" column="0">
        <widget class="QLabel" name="label_13">
         <property name="text">
          <string>Force grid output transform:</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="0" column="1">
        <widget class="QCheckBox" name="forceDisplacementFieldOutputCheckbox">
         <property name="toolTip">
          <string>If this checkbox is checked then computed transform will be always returned as a grid transform (displacement field).</string>
@@ -366,7 +366,7 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="0">
+      <item row="1" column="0">
        <widget class="QLabel" name="label_9">
         <property name="toolTip">
          <string>Show detailed log during registration.</string>
@@ -376,7 +376,7 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
+      <item row="1" column="1">
        <widget class="QCheckBox" name="showDetailedLogDuringExecutionCheckBox">
         <property name="toolTip">
          <string>Show detailed log during registration.</string>
@@ -386,7 +386,7 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="0">
+      <item row="2" column="0">
        <widget class="QLabel" name="label_10">
         <property name="toolTip">
          <string>Keep temporary files (inputs, computed outputs, logs) after the registration is completed.</string>
@@ -396,7 +396,7 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="1">
+      <item row="2" column="1">
        <widget class="QFrame" name="frame">
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
@@ -446,14 +446,14 @@
         </layout>
        </widget>
       </item>
-      <item row="8" column="0">
+      <item row="3" column="0">
        <widget class="QLabel" name="label_12">
         <property name="text">
          <string>Registration presets:</string>
         </property>
        </widget>
       </item>
-      <item row="8" column="1">
+      <item row="3" column="1">
        <widget class="QPushButton" name="showRegistrationParametersDatabaseFolderButton">
         <property name="toolTip">
          <string>Open the folder where temporary files are stored.</string>
@@ -463,14 +463,14 @@
         </property>
        </widget>
       </item>
-      <item row="9" column="0">
+      <item row="4" column="0">
        <widget class="QLabel" name="label_11">
         <property name="text">
          <string>Custom Elastix toolbox location:</string>
         </property>
        </widget>
       </item>
-      <item row="9" column="1">
+      <item row="4" column="1">
        <widget class="ctkPathLineEdit" name="customElastixBinDirSelector">
         <property name="toolTip">
          <string>Set bin directory of an Elastix installation (where elastix executable is located). &quot;
@@ -481,14 +481,14 @@
         </property>
        </widget>
       </item>
-      <item row="10" column="0">
+      <item row="5" column="0">
        <widget class="QLabel" name="label_14">
         <property name="text">
          <string>Initial transform: </string>
         </property>
        </widget>
       </item>
-      <item row="10" column="1">
+      <item row="5" column="1">
        <widget class="qMRMLNodeComboBox" name="initialTransformSelector">
         <property name="toolTip">
          <string>Start the registration from the selected initial transform.</string>
@@ -537,6 +537,12 @@
      </property>
      <property name="text">
       <string>Apply</string>
+     </property>
+     <property name="autoDefault">
+      <bool>true</bool>
+     </property>
+     <property name="default">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
