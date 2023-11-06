@@ -1,295 +1,178 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <ElastixParameterSetDatabase>
-  <ParameterSet id="default0"
-    modality="generic"
-    content="all"
-    description="'default' parameter files for starting elastix users"
-    publications="">
+  <ParameterSet id="default0" modality="generic" content="all" description="'default' parameter files for starting elastix users" publications="">
     <ParameterFiles>
       <File Name="Parameters_Rigid.txt" />
       <File Name="Parameters_BSpline.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="default-rigid"
-    modality="generic rigid"
-    content="all"
-    description="'default' parameter files for starting elastix users"
-    publications="">
+  <ParameterSet id="default-rigid" modality="generic rigid" content="all" description="'default' parameter files for starting elastix users" publications="">
     <ParameterFiles>
       <File Name="Parameters_Rigid.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0000"
-    modality="3D MR T1, monomodal"
-    content="brain"
-    description="interpatient; affine + B-spline transformation; mutual information"
-    publications="van der Lijn (2009) - Cerebellum Segmentation in MRI Using Atlas Registration and Local Multi-Scale Image Descriptors">
+  <ParameterSet id="par0000" modality="3D MR T1, monomodal" content="brain" description="interpatient; affine + B-spline transformation; mutual information" publications="van der Lijn (2009) - Cerebellum Segmentation in MRI Using Atlas Registration and Local Multi-Scale Image Descriptors">
     <ParameterFiles>
       <File Name="Par0000affine.txt" />
       <File Name="Par0000bspline.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0001"
-    modality="3D MR BFFE, monomodal"
-    content="prostate"
-    description="interpatient; several transformation models; localised mutual information"
-    publications="Klein &amp; Staring (2010) - elastix: a toolbox for intensity-based medical image registration">
+  <ParameterSet id="par0001" modality="3D MR BFFE, monomodal" content="prostate" description="interpatient; several transformation models; localised mutual information" publications="Klein &amp; Staring (2010) - elastix: a toolbox for intensity-based medical image registration">
     <ParameterFiles>
       <File Name="Par0001translation.txt" />
       <File Name="Par0001bspline16.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0002"
-    modality="3D MR T1 &amp; PET"
-    content="brain"
-    description="intrapatient; translation; mutual information"
-    publications="Klein &amp; Staring (2010) - elastix: a toolbox for intensity-based medical image registration">
+  <ParameterSet id="par0002" modality="3D MR T1 &amp; PET" content="brain" description="intrapatient; translation; mutual information" publications="Klein &amp; Staring (2010) - elastix: a toolbox for intensity-based medical image registration">
     <ParameterFiles>
       <File Name="Par0002.fs.MI.rigid.RandomCoordinate.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0003"
-    modality="3D CT, monomodal"
-    content="lung"
-    description="interpatient; affine + B-spline transformation; mutual information"
-    publications="Klein &amp; Staring (2010) - elastix: a toolbox for intensity-based medical image registration">
+  <ParameterSet id="par0003" modality="3D CT, monomodal" content="lung" description="interpatient; affine + B-spline transformation; mutual information" publications="Klein &amp; Staring (2010) - elastix: a toolbox for intensity-based medical image registration">
     <ParameterFiles>
       <File Name="Par0003.affine.txt" />
       <File Name="Par0003.bs-R4-fg.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0008"
-    modality="3D CT, monomodal"
-    content="lung"
-    description="intrapatient; B-spline transformation; mutual information"
-    publications="Murphy (2008) - Semi-Automatic Reference Standard Construction for Quantitative Evaluation of Lung CT Registration">
+  <ParameterSet id="par0008" modality="3D CT, monomodal" content="lung" description="intrapatient; B-spline transformation; mutual information" publications="Murphy (2008) - Semi-Automatic Reference Standard Construction for Quantitative Evaluation of Lung CT Registration">
     <ParameterFiles>
       <File Name="Parameters.Par0008.affine.txt" />
       <File Name="Parameters.Par0008.elastic.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0009"
-    modality="3D MRI, monomodal"
-    content="brain"
-    description="interpatient; B-spline transformation; mutual information"
-    publications="Artaechevarria (2009) - Combination strategies in multi-atlas image segmentation: application to brain MR data">
+  <ParameterSet id="par0009" modality="3D MRI, monomodal" content="brain" description="interpatient; B-spline transformation; mutual information" publications="Artaechevarria (2009) - Combination strategies in multi-atlas image segmentation: application to brain MR data">
     <ParameterFiles>
       <File Name="Parameters.Par0009.affine.txt" />
       <File Name="Parameters.Par0009.elastic.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0010"
-    modality="3D MR HASTE, monomodal"
-    content="brain"
-    description="interpatient; affine + B-spline transformation; mutual information"
-    publications="Klein (2010) - Early diagnosis of dementia based on intersubject whole-brain dissimilarities">
+  <ParameterSet id="par0010" modality="3D MR HASTE, monomodal" content="brain" description="interpatient; affine + B-spline transformation; mutual information" publications="Klein (2010) - Early diagnosis of dementia based on intersubject whole-brain dissimilarities">
     <ParameterFiles>
       <File Name="Par0010affine.txt" />
       <File Name="Par0010bspline.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0011"
-    modality="3D CT, monomodal"
-    content="lung"
-    description="intrapatient (sometimes intra-sheep); B-spline transformation; normalized correlation"
-    publications="Staring (2010), Pulmonary Image Registration With &lt;tt&gt;elastix&lt;/tt&gt; Using a Standard Intensity-Based Algorithm">
+  <ParameterSet id="par0011" modality="3D CT, monomodal" content="lung" description="intrapatient (sometimes intra-sheep); B-spline transformation; normalized correlation" publications="Staring (2010), Pulmonary Image Registration With &lt;tt&gt;elastix&lt;/tt&gt; Using a Standard Intensity-Based Algorithm">
     <ParameterFiles>
       <File Name="Parameters.Par0011.affine.txt" />
       <File Name="Parameters.Par0011.bspline1_s.txt" />
       <File Name="Parameters.Par0011.bspline2_s.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0013"
-    modality="2D x-ray - 3D CT "
-    content="cerebral"
-    description="registration of interventional x-ray data to 3D CT for motion estimation, patient positioning or image guidance"
-    publications="van der Bom (2011), Evaluation of optimization methods for intensity-based 2D-3D registration in x-ray guided interventions">
+  <ParameterSet id="par0013" modality="2D x-ray - 3D CT " content="cerebral" description="registration of interventional x-ray data to 3D CT for motion estimation, patient positioning or image guidance" publications="van der Bom (2011), Evaluation of optimization methods for intensity-based 2D-3D registration in x-ray guided interventions">
     <ParameterFiles>
       <File Name="par0013Powel_NGC_singleImage.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0014"
-    modality="3D microCT"
-    content="whole-body mouse"
-    description="intra-mouse; B-spline transformation; combination of normalized correlation and the Euclidean distance metric"
-    publications="Baiker (2011), Automated Registration of Whole-Body Follow-Up MicroCT Data of Mice">
+  <ParameterSet id="par0014" modality="3D microCT" content="whole-body mouse" description="intra-mouse; B-spline transformation; combination of normalized correlation and the Euclidean distance metric" publications="Baiker (2011), Automated Registration of Whole-Body Follow-Up MicroCT Data of Mice">
     <ParameterFiles>
       <File Name="Parameters.similarity.txt" />
       <File Name="Parameters.NCC.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0015"
-    modality="3D CT, monomodal"
-    content="lung"
-    description="intrapatient; B-spline transformation; several similarity metrics"
-    publications="Staring (2013), Towards Local Progression Estimation of Pulmonary Emphysema using CT">
+  <ParameterSet id="par0015" modality="3D CT, monomodal" content="lung" description="intrapatient; B-spline transformation; several similarity metrics" publications="Staring (2013), Towards Local Progression Estimation of Pulmonary Emphysema using CT">
     <ParameterFiles>
       <File Name="Parameters.Par0015.expA.patient.NC.affine.txt" />
       <File Name="Parameters.Par0015.expA.patient.NC.bspline.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0017"
-    modality="3D MR, monomodal"
-    content="knee cartilage"
-    description="intrapatient; rigid; localized mutual information"
-    publications="Bron (2013) -  Image registration improves human knee cartilage T1 mapping with delayed Gadolinium Enhanced MRI of Cartilage (dGEMRIC)">
+  <ParameterSet id="par0017" modality="3D MR, monomodal" content="knee cartilage" description="intrapatient; rigid; localized mutual information" publications="Bron (2013) -  Image registration improves human knee cartilage T1 mapping with delayed Gadolinium Enhanced MRI of Cartilage (dGEMRIC)">
     <ParameterFiles>
       <File Name="Par0017_cartilage_RigidLMI.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0018"
-    modality="3D MR, multi sequence"
-    content="carotid artery"
-    description="interpatient; several transformation models; mutual information based similarity metrics"
-    publications="van 't Klooster - Automated Registration of Multispectral MR Vessel Wall Images of the Carotid Artery">
+  <ParameterSet id="par0018" modality="3D MR, multi sequence" content="carotid artery" description="interpatient; several transformation models; mutual information based similarity metrics" publications="van 't Klooster - Automated Registration of Multispectral MR Vessel Wall Images of the Carotid Artery">
     <ParameterFiles>
       <File Name="Par0018_3D_rigid_MI.txt" />
       <File Name="Par0018_3D_affine_MI.txt" />
       <File Name="Par0018_3D_bspline_MI_15.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0019"
-    modality="3D CT, monomodal"
-    content="head and neck"
-    description="inter patient; rigid and B-spline transformation, advanced mean square and normalized correlation metrics"
-    publications="Fortunati (2013) - Atlas based segmentation for hyperthermia treatment planning">
+  <ParameterSet id="par0019" modality="3D CT, monomodal" content="head and neck" description="inter patient; rigid and B-spline transformation, advanced mean square and normalized correlation metrics" publications="Fortunati (2013) - Atlas based segmentation for hyperthermia treatment planning">
     <ParameterFiles>
       <File Name="Parameters_RigidAMS.txt" />
       <File Name="Parameters_BSplineNCC.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0020"
-    modality="3D MR, multi-contrast"
-    content="rat brain"
-    description="intra-subject, longitudinal data; rigid + affine + B-spline transformation, advanced normalized correlation metric with a transform bending energy penalty"
-    publications="Khmelinskii (2013) - [http://proceedings.spiedigitallibrary.org/proceeding.aspx?articleid=1674633 A visualization platform for high-throughput, follow-up, co-registered multi-contrast MRI rat brain data. Mengler (2014) - [http://www.sciencedirect.com/science/article/pii/S1053811913008963 Brain maturation of the adolescent rat cortex and striatum: changes in volume and myelination]">
+  <ParameterSet id="par0020" modality="3D MR, multi-contrast" content="rat brain" description="intra-subject, longitudinal data; rigid + affine + B-spline transformation, advanced normalized correlation metric with a transform bending energy penalty" publications="Khmelinskii (2013) - [http://proceedings.spiedigitallibrary.org/proceeding.aspx?articleid=1674633 A visualization platform for high-throughput, follow-up, co-registered multi-contrast MRI rat brain data. Mengler (2014) - [http://www.sciencedirect.com/science/article/pii/S1053811913008963 Brain maturation of the adolescent rat cortex and striatum: changes in volume and myelination]">
     <ParameterFiles>
       <File Name="Par0020rigid.txt" />
       <File Name="Par0020affine.txt" />
       <File Name="Par0020bspline2.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0023"
-    modality="3D CT, 3D MR, multimodal"
-    content="head and neck"
-    description="intrapatient; rigid + B-spline transformation; localized mutual information combined with bending energy penalty"
-    publications="Leibfarth (2013),  A strategy for multimodal deformable image registration to integrate PET/MR into radiotherapy treatment planning">
+  <ParameterSet id="par0023" modality="3D CT, 3D MR, multimodal" content="head and neck" description="intrapatient; rigid + B-spline transformation; localized mutual information combined with bending energy penalty" publications="Leibfarth (2013),  A strategy for multimodal deformable image registration to integrate PET/MR into radiotherapy treatment planning">
     <ParameterFiles>
       <File Name="Rigid.txt" />
       <File Name="Deformable.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0025"
-    modality="3D MR, multi-contrast"
-    content="mouse brain"
-    description="intra-subject, longitudinal data; rigid + affine + B-spline transformation, advanced normalized correlation metric with a transform bending energy penalty"
-    publications="Hammelrath (2015) - [http://www.sciencedirect.com/science/article/pii/S1053811915009039 Morphological maturation of the mouse brain: an ''in vivo'' MRI and histology investigation">
+  <ParameterSet id="par0025" modality="3D MR, multi-contrast" content="mouse brain" description="intra-subject, longitudinal data; rigid + affine + B-spline transformation, advanced normalized correlation metric with a transform bending energy penalty" publications="Hammelrath (2015) - [http://www.sciencedirect.com/science/article/pii/S1053811915009039 Morphological maturation of the mouse brain: an ''in vivo'' MRI and histology investigation">
     <ParameterFiles>
       <File Name="Par0025rigid.txt" />
       <File Name="Par0025affine.txt" />
       <File Name="Par0025bspline.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0026"
-    modality="3D MR, multi-contrast"
-    content="rat brain"
-    description="intra-subject, longitudinal data; rigid + affine + B-spline transformation"
-    publications=" Hammelrath (2016)">
+  <ParameterSet id="par0026" modality="3D MR, multi-contrast" content="rat brain" description="intra-subject, longitudinal data; rigid + affine + B-spline transformation" publications=" Hammelrath (2016)">
     <ParameterFiles>
       <File Name="Par0026rigid.txt" />
       <File Name="Par0026affine.txt" />
       <File Name="Par0026bspline.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0030"
-    modality="3D T1 fat-suppressed Ga-enhanced extremity MR"
-    content="wrist"
-    description="inter patient; Affine + B-spline transformation; normalized cross correlation. intra patient; Rigid transformation; mutual information"
-    publications="Roex - MSc thesis: Early Detection of Rheumatoid Arthritis using extremity MRI: Quantification of Bone Marrow Edema in the Carpal bones">
+  <ParameterSet id="par0030" modality="3D T1 fat-suppressed Ga-enhanced extremity MR" content="wrist" description="inter patient; Affine + B-spline transformation; normalized cross correlation. intra patient; Rigid transformation; mutual information" publications="Roex - MSc thesis: Early Detection of Rheumatoid Arthritis using extremity MRI: Quantification of Bone Marrow Edema in the Carpal bones">
     <ParameterFiles>
       <File Name="Parameters0030_Euler.txt" />
       <File Name="Parameters0030_Affine.txt" />
       <File Name="Parameters0030_Bspline.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0032"
-    modality="3D DCE-MRI"
-    content="breast"
-    description="intrapatient; rigid + B-spline transformation; mutual information"
-    publications="Gubern-Merida (2015), Automated localization of breast cancer in DCE-MRI">
+  <ParameterSet id="par0032" modality="3D DCE-MRI" content="breast" description="intrapatient; rigid + B-spline transformation; mutual information" publications="Gubern-Merida (2015), Automated localization of breast cancer in DCE-MRI">
     <ParameterFiles>
       <File Name="Par0032_rigid.txt" />
       <File Name="Par0032_bsplines.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0033"
-    modality="3D MR"
-    content="mouse brain"
-    description="inter-subject; rigid + affine + B-spline transformation; mutual information metric with a transform bending energy penalty"
-    publications="Bink (2016), Kogelman (2016)">
+  <ParameterSet id="par0033" modality="3D MR" content="mouse brain" description="inter-subject; rigid + affine + B-spline transformation; mutual information metric with a transform bending energy penalty" publications="Bink (2016), Kogelman (2016)">
     <ParameterFiles>
       <File Name="Par0033rigid.txt" />
       <File Name="Par0033similarity.txt" />
       <File Name="Par0033bspline.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0034"
-    modality="2D CBF MR"
-    content="mouse brain"
-    description="inter-subject; rigid + affine + B-spline transformation; advanced normalized correlation + mutual information metric with a transform bending energy penalty"
-    publications="Bink (2016)">
+  <ParameterSet id="par0034" modality="2D CBF MR" content="mouse brain" description="inter-subject; rigid + affine + B-spline transformation; advanced normalized correlation + mutual information metric with a transform bending energy penalty" publications="Bink (2016)">
     <ParameterFiles>
       <File Name="Par0034rigid.txt" />
       <File Name="Par0034affine.txt" />
       <File Name="Par0034bspline.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0040"
-    modality="extremity MRI"
-    content="wrist"
-    description="intra-subject; affine transformation, mutual information metric"
-    publications="Aizenberg (2016)">
+  <ParameterSet id="par0040" modality="extremity MRI" content="wrist" description="intra-subject; affine transformation, mutual information metric" publications="Aizenberg (2016)">
     <ParameterFiles>
       <File Name="Par0040affine.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0041"
-    modality="extremity MRI"
-    content="wrist"
-    description="inter-subject; similarity + B-spline transformation, advanced normalized correlation metric"
-    publications="Aizenberg (2016)">
+  <ParameterSet id="par0041" modality="extremity MRI" content="wrist" description="inter-subject; similarity + B-spline transformation, advanced normalized correlation metric" publications="Aizenberg (2016)">
     <ParameterFiles>
       <File Name="Par0041similarity.txt" />
       <File Name="Par0041bspline.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0042"
-    modality="MRI"
-    content="spine"
-    description="inter-subject; rigid + B-spline transformation, advanced normalized correlation metric"
-    publications="Aizenberg (2016)">
+  <ParameterSet id="par0042" modality="MRI" content="spine" description="inter-subject; rigid + B-spline transformation, advanced normalized correlation metric" publications="Aizenberg (2016)">
     <ParameterFiles>
       <File Name="Par0042rigid.txt" />
       <File Name="Par0042bspline.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0043"
-    modality="CT/ MR-based pseudo-CT"
-    content="pelvis (prostate)"
-    description="intra-subject; multi-resolution (4), rigid + B-spline transformation, Mutual Information metric (Mattes) with Adaptive Stochastic Gradient Descent optimizer"
-    publications="Maspero M, et al. (2017), [http://iopscience.iop.org/article/10.1088/1361-6560/aa4fe7 Quantification of confounding factors in MRI-based dose calculations as applied to prostate IMRT.] Phys Med Biol. 62(3)">
+  <ParameterSet id="par0043" modality="CT/ MR-based pseudo-CT" content="pelvis (prostate)" description="intra-subject; multi-resolution (4), rigid + B-spline transformation, Mutual Information metric (Mattes) with Adaptive Stochastic Gradient Descent optimizer" publications="Maspero M, et al. (2017), [http://iopscience.iop.org/article/10.1088/1361-6560/aa4fe7 Quantification of confounding factors in MRI-based dose calculations as applied to prostate IMRT.] Phys Med Biol. 62(3)">
     <ParameterFiles>
       <File Name="Par0043rigid.txt" />
     </ParameterFiles>
   </ParameterSet>
-  <ParameterSet id="par0044"
-    modality="3D CT, multi-contrast "
-    content="cardiac"
-    description="intra-subject; multi-image; affine (Mutual Information) + multi-image B-spline transformation (Mutual Information and mean square difference); "
-    publications="Giordano (2016)">
+  <ParameterSet id="par0044" modality="3D CT, multi-contrast " content="cardiac" description="intra-subject; multi-image; affine (Mutual Information) + multi-image B-spline transformation (Mutual Information and mean square difference); " publications="Giordano (2016)">
     <ParameterFiles>
       <File Name="Par0044Affine.txt" />
       <File Name="Par0044NonRigid.txt" />
     </ParameterFiles>
   </ParameterSet>
-</ElastixParameterSetDatabase>
+<ParameterSet content="mouse brain" description="inter-subject; rigid + affine + B-spline transformation; advanced normalized correlation + mutual information metric with a transform bending energy penalty" id="par0034_danskjdsand" modality="2D CBF MR (Dansdkansjd)" publications="Bink (2016)"><ParameterFiles><File Name="Par0034rigid.txt" /><File Name="Par0034affine.txt" /><File Name="Par0034bspline.txt" /></ParameterFiles></ParameterSet></ElastixParameterSetDatabase>

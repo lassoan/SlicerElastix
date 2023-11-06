@@ -4,6 +4,9 @@ set(MODULE_NAME Elastix)
 #-----------------------------------------------------------------------------
 set(MODULE_PYTHON_SCRIPTS
   ${MODULE_NAME}.py
+  ElastixLib/__init__
+  ElastixLib/constants.py
+  ElastixLib/manager.py
   )
 
 set(MODULE_PYTHON_RESOURCES

@@ -1,12 +1,13 @@
 from __future__ import print_function
 import os
 import subprocess
-import unittest
-import vtk, qt, ctk, slicer
+import vtk, qt, slicer
+
+from ElastixLib.constants import *
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
 import logging
-import sys
+
 
 #
 # Elastix
@@ -115,6 +116,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     # Immediately update deleteTemporaryFiles in the logic to make it possible to decide to
     # keep the temporary file while the registration is running
     self.ui.keepTemporaryFilesCheckBox.connect("toggled(bool)", self.onKeepTemporaryFilesToggled)
+    self.ui.managePresetsButton.connect("clicked()", self.onCreatePresetPressed)
 
     self.initializeParameterNode()
 
@@ -214,6 +216,77 @@ class ElastixWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
     # All the GUI updates are done
     self._updatingGUIFromParameterNode = False
+
+  def onCreatePresetPressed(self):
+    from ElastixLib.manager import NewPresetDialog
+    dialog = NewPresetDialog()
+
+    returnCode = dialog.exec_()
+    while returnCode not in [qt.QDialog.Accepted, qt.QDialog.Rejected]:
+      dialog = NewPresetDialog()
+      returnCode = dialog.exec_()
+
+    if returnCode == qt.QDialog.Accepted:
+      self.createPreset(dialog)
+
+  def createPreset(self, dialog):
+    filenames = dialog.getParameterFiles()
+    if len(filenames) > 0:
+      from shutil import copyfile
+      import xml.etree.ElementTree as ET
+      databaseDir = self.logic.registrationParameterFilesDir
+      presetDatabase = os.path.join(databaseDir, 'ElastixParameterSetDatabase.xml')
+      xml = ET.parse(presetDatabase)
+      root = xml.getroot()
+      attributes = dialog.getMetaInformation()
+
+      presetElement = ET.SubElement(root, "ParameterSet", attributes)
+      parFilesElement = ET.SubElement(presetElement, "ParameterFiles")
+
+      # Copy parameter files to database directory
+      for file in filenames:
+        filename = os.path.basename(file)
+        newFilePath = os.path.join(databaseDir, filename)
+        createFileCopy = True
+        discard = False
+        if os.path.exists(newFilePath):
+          import hashlib
+          # check if identical
+          if hashlib.md5(open(newFilePath, 'rb').read()).hexdigest() == hashlib.md5(open(file, 'rb').read()).hexdigest():
+            createFileCopy = False
+          else: # not identical but same name
+            if self.overwriteParFile(filename):
+              createFileCopy = True
+            else:
+              discard = True
+        if createFileCopy:
+          copyfile(file, newFilePath)
+        if not discard:
+          ET.SubElement(parFilesElement, "File", {"Name": filename})
+
+      xml.write(presetDatabase)
+
+      # Refresh list and select new preset
+      self.selectNewPreset()
+
+    # Destroy old dialog box
+    self.newParameterButtons = []
+
+  def selectNewPreset(self):
+    allPresets = self.logic.getRegistrationPresets(force_refresh=True)
+    preset = allPresets[len(allPresets) - 1]
+    self.ui.registrationPresetSelector.addItem(
+      f"{preset[RegistrationPresets_Modality]} ({preset[RegistrationPresets_Content]})"
+    )
+    self.ui.registrationPresetSelector.currentIndex = self.ui.registrationPresetSelector.count - 1
+
+  def overwriteParFile(self, filename):
+    d = qt.QDialog()
+    resp = qt.QMessageBox.warning(d, "Overwrite File?",
+                                  "File \"%s\" already exists and is not identical, do you want to overwrite it? (Clicking Discard would exclude the file from the preset)" % filename,
+                                  qt.QMessageBox.Save | qt.QMessageBox.Discard | qt.QMessageBox.Abort , qt.QMessageBox.Save)
+    return resp == qt.QMessageBox.Save
+
 
   def onShowTemporaryFilesFolder(self):
     qt.QDesktopServices().openUrl(qt.QUrl("file:///" + self.logic.getTempDirectoryBase(), qt.QUrl.TolerantMode))
@@ -406,8 +479,8 @@ class ElastixLogic(ScriptedLoadableModuleLogic):
 
     return elastixEnv
 
-  def getRegistrationPresets(self):
-    if self.registrationPresets:
+  def getRegistrationPresets(self, force_refresh=False):
+    if self.registrationPresets and not force_refresh:
       return self.registrationPresets
 
     # Read database from XML file
@@ -747,9 +820,3 @@ class ElastixTest(ScriptedLoadableModuleTest):
     self.delayDisplay('Test passed!')
 
 
-RegistrationPresets_Id = 0
-RegistrationPresets_Modality = 1
-RegistrationPresets_Content = 2
-RegistrationPresets_Description = 3
-RegistrationPresets_Publications = 4
-RegistrationPresets_ParameterFilenames = 5
