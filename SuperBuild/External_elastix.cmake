@@ -49,6 +49,11 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
       -DGIT_EXECUTABLE:STRING=${GIT_EXECUTABLE}
       -DITK_DIR:STRING=${ITK_DIR}
       -DUSE_KNNGraphAlphaMutualInformationMetric:BOOL=OFF
+      # OpenMP is not included in the package, turn it off for now
+      # It could be nice to enable it in the future, as it may improve performance
+      # of some metrics, but if we add OpenMP shared library to the package then
+      # that might cause problem for other executables.
+      -DELASTIX_USE_OPENMP:BOOL=OFF
       -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
       -DCMAKE_CXX_FLAGS:STRING=${${proj}_cxx_flags}
       -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
