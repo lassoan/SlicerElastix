@@ -35,7 +35,7 @@ def makeAction(parent, text, slot, icon=None):
   return action
 
 
-class NewPresetDialog:
+class PresetManagerDialog:
 
   @property
   def selectionModel(self):
@@ -48,7 +48,7 @@ class NewPresetDialog:
 
   def setup(self):
     scriptedModulesPath = os.path.dirname(slicer.util.modulePath("Elastix"))
-    self.widget = slicer.util.loadUI(os.path.join(scriptedModulesPath, 'Resources', "UI/NewPresetDialog.ui"))
+    self.widget = slicer.util.loadUI(os.path.join(scriptedModulesPath, 'Resources', "UI/PresetManager.ui"))
     self.ui = slicer.util.childWidgetVariables(self.widget)
 
     self.ui.presetSelector.addItem('')
