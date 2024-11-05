@@ -218,12 +218,12 @@ class ElastixWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self._updatingGUIFromParameterNode = False
 
   def onCreatePresetPressed(self):
-    from ElastixLib.manager import NewPresetDialog
-    dialog = NewPresetDialog()
+    from ElastixLib.manager import PresetManagerDialog
+    dialog = PresetManagerDialog()
 
     returnCode = dialog.exec_()
     while returnCode not in [qt.QDialog.Accepted, qt.QDialog.Rejected]:
-      dialog = NewPresetDialog()
+      dialog = PresetManagerDialog()
       returnCode = dialog.exec_()
 
     if returnCode == qt.QDialog.Accepted:
