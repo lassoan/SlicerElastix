@@ -5,8 +5,11 @@ set(MODULE_NAME Elastix)
 set(MODULE_PYTHON_SCRIPTS
   ${MODULE_NAME}.py
   ElastixLib/__init__
-  ElastixLib/constants.py
+  ElastixLib/utils.py
+  ElastixLib/database.py
+  ElastixLib/preset.py
   ElastixLib/manager.py
+  ElastixLib/ElastixPresetSubjectHierarchyPlugin.py
   )
 
 set(MODULE_PYTHON_RESOURCES

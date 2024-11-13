@@ -60,7 +60,7 @@
   </ParameterSet>
   <ParameterSet id="par0013" modality="2D x-ray - 3D CT " content="cerebral" description="registration of interventional x-ray data to 3D CT for motion estimation, patient positioning or image guidance" publications="van der Bom (2011), Evaluation of optimization methods for intensity-based 2D-3D registration in x-ray guided interventions">
     <ParameterFiles>
-      <File Name="par0013Powel_NGC_singleImage.txt" />
+      <File Name="par0013Powell_NGC_singleImage.txt" />
     </ParameterFiles>
   </ParameterSet>
   <ParameterSet id="par0014" modality="3D microCT" content="whole-body mouse" description="intra-mouse; B-spline transformation; combination of normalized correlation and the Euclidean distance metric" publications="Baiker (2011), Automated Registration of Whole-Body Follow-Up MicroCT Data of Mice">
