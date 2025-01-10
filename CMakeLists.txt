@@ -7,7 +7,7 @@ project(SlicerElastix)
 set(EXTENSION_HOMEPAGE "https://github.com/lassoan/SlicerElastix")
 set(EXTENSION_CATEGORY "Registration")
 set(EXTENSION_CONTRIBUTORS "Andras Lasso (PerkLab, Queen's University)")
-set(EXTENSION_DESCRIPTION "This extension makes available Elastix medical image registration toolbox (http://elastix.isi.uu.nl/) available in Slicer.")
+set(EXTENSION_DESCRIPTION "This extension makes available Elastix medical image registration toolbox (https://elastix.dev) available in Slicer.")
 set(EXTENSION_ICONURL "https://raw.githubusercontent.com/lassoan/SlicerElastix/master/SlicerElastix.png")
 set(EXTENSION_SCREENSHOTURLS "https://raw.githubusercontent.com/lassoan/SlicerElastix/master/Screenshot01.jpg")
 set(EXTENSION_DEPENDS "NA") # Specified as a space separated string, a list or 'NA' if any
