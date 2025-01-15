@@ -26,12 +26,12 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   endif()
 
   message(STATUS "ITK version: ${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}.${ITK_VERSION_PATCH}.")
-  if(DEFINED ITK_VERSION_MAJOR AND ${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR} VERSION_LESS 5.0)
-    set(ELASTIX_GIT_REPOSITORY "$https://github.com/SuperElastix/elastix.git")
-    set(ELASTIX_GIT_TAG "419313e9cc12727d73c7e6e47fbdf960aa1218b9") # latest commit on "develop" branch as if 2019-10-13
-  else()
+  if(DEFINED ITK_VERSION_MAJOR AND ${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR} VERSION_LESS 5.4)
     set(ELASTIX_GIT_REPOSITORY "https://github.com/SuperElastix/elastix.git")
     set(ELASTIX_GIT_TAG "5.1.0") # 2023-01-12
+  else()
+    set(ELASTIX_GIT_REPOSITORY "https://github.com/SuperElastix/elastix.git")
+    set(ELASTIX_GIT_TAG "5.2.0") # 2024-07-18
   endif()
 
   ExternalProject_Add(${proj}
