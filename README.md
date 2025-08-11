@@ -33,3 +33,7 @@ This extension makes available Elastix medical image registration toolkit (https
 * Click `Show database folder` in Advanced section, which will open the tolder that contains all registration preset parameter files
 * Edit the parameter set database file (`ElastixParameterSetDatabase.xml`) to edit or add a new preset (each `ParameterSet` element defines one preset)
 * To modify parameters of a registration step, edit the corresponding `.txt` parameter file
+
+## Support
+
+Please post any questions, comments, or suggestions about this extension to the [3D Slicer Forum](https://discourse.slice.org).
