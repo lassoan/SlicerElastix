@@ -36,4 +36,4 @@ This extension makes available Elastix medical image registration toolkit (https
 
 ## Support
 
-Please post any questions, comments, or suggestions about this extension to the [3D Slicer Forum](https://discourse.slice.org).
+Please post any questions, comments, or suggestions about this extension to the [3D Slicer Forum](https://discourse.slicer.org).
