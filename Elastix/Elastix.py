@@ -143,21 +143,17 @@ class ElastixWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.initializeParameterNode()
 
   def onReload(self):
-    logging.debug("Reloading Elastix")
 
-    packageName='ElastixLib'
-    submoduleNames=['preset', 'utils', 'database', 'manager', 'ElastixPresetSubjectHierarchyPlugin']
-    import imp
-    f, filename, description = imp.find_module(packageName)
-    package = imp.load_module(packageName, f, filename, description)
-    for submoduleName in submoduleNames:
-      f, filename, description = imp.find_module(submoduleName, package.__path__)
-      try:
-          imp.load_module(packageName+'.'+submoduleName, f, filename, description)
-      finally:
-          f.close()
+    with slicer.util.tryWithErrorDisplay("Failed to reload the module."):
 
-    ScriptedLoadableModuleWidget.onReload(self)
+      packageName='ElastixLib'
+      submoduleNames=['preset', 'utils', 'database', 'manager', 'ElastixPresetSubjectHierarchyPlugin']
+      import importlib
+      package = importlib.import_module(packageName)
+      for submoduleName in submoduleNames:
+        importlib.import_module(f"{packageName}.{submoduleName}")
+
+      ScriptedLoadableModuleWidget.onReload(self)
 
   def cleanup(self):
     self.removeObservers()
