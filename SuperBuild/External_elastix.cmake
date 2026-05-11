@@ -30,13 +30,16 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
     set(${proj}_cxx_flags "${ep_common_cxx_flags} -Wno-inconsistent-missing-override")
   endif()
 
+  if(NOT DEFINED ITK_VERSION_MAJOR)
+    message(FATAL_ERROR "Variable ITK_VERSION_MAJOR is expected to be defined.")
+  endif()
+
   message(STATUS "ITK version: ${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}.${ITK_VERSION_PATCH}.")
-  if(DEFINED ITK_VERSION_MAJOR AND ${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR} VERSION_LESS 5.4)
-    set(ELASTIX_GIT_REPOSITORY "https://github.com/SuperElastix/elastix.git")
-    set(ELASTIX_GIT_TAG "5.1.0") # 2023-01-12
+  set(ELASTIX_GIT_REPOSITORY "https://github.com/SuperElastix/elastix.git")
+  if(${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR} VERSION_GREATER_EQUAL 5.4)
+    set(ELASTIX_GIT_TAG "5.3.1") # 2026-03-17 (requires ITK >= 5.4.1; builds against ITK upstream main)
   else()
-    set(ELASTIX_GIT_REPOSITORY "https://github.com/SuperElastix/elastix.git")
-    set(ELASTIX_GIT_TAG "5.2.0") # 2024-07-18
+    set(ELASTIX_GIT_TAG "5.1.0") # 2023-01-12
   endif()
 
   ExternalProject_Add(${proj}
