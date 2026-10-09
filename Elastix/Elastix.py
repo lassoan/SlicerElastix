@@ -141,6 +141,15 @@ class ElastixWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui.keepTemporaryFilesCheckBox.connect("toggled(bool)", self.onKeepTemporaryFilesToggled)
     self.ui.managePresetsButton.connect("clicked()", self.onPresetManagerClicked)
 
+    # In a web browser there are no folders to open and no elastix executable to choose:
+    # the registration runs as WebAssembly in a worker of the page (see ElastixLib.web_launcher)
+    if web_launcher.available():
+      for widget in [self.ui.label_10, self.ui.frame,  # Keep temporary files
+                     self.ui.label_12, self.ui.showBuiltinPresetFolderButton,  # Built-in registration presets
+                     self.ui.label_15, self.ui.showUserPresetFolderButton,  # User registration presets
+                     self.ui.label_11, self.ui.customElastixBinDirSelector]:  # Custom elastix toolbox location
+        widget.setVisible(False)
+
     self.initializeParameterNode()
 
   def onReload(self):
