@@ -5,6 +5,7 @@ import vtk, qt, slicer
 
 from ElastixLib.utils import *
 from ElastixLib.manager import PresetManagerLogic
+from ElastixLib import web_launcher
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
 import logging
@@ -277,28 +278,41 @@ class ElastixWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def onApplyButton(self):
     if self.registrationInProgress:
-      self.logic.cancelRequested = True
-      self.registrationInProgress = False
-    else:
-      with slicer.util.tryWithErrorDisplay("Failed to compute results.", waitCursor=True):
-        self.ui.statusLabel.plainText = ''
-        try:
-          self.registrationInProgress = True
-          self.updateApplyButtonState()
+      self.logic.cancel()
+      self.updateApplyButtonState()
+      return
+    self.ui.statusLabel.plainText = ''
+    self.registrationInProgress = True
+    self.updateApplyButtonState()
+    self.logic.setCustomElastixBinDir(self.ui.customElastixBinDirSelector.currentPath)
+    self.logic.deleteTemporaryFiles = not self.ui.keepTemporaryFilesCheckBox.checked
+    self.logic.logStandardOutput = self.ui.showDetailedLogDuringExecutionCheckBox.checked
+    # A registration computed here keeps the application waiting, with the wait cursor; one
+    # computed in the background answers later, the button saying Cancel meanwhile
+    if not self.logic.runsInBackground:
+      qt.QApplication.setOverrideCursor(qt.Qt.WaitCursor)
+    try:
+      self.logic.registerVolumesUsingParameterNode(self._parameterNode, onFinished=self.onRegistrationFinished)
+    except Exception as error:
+      logging.exception("Registration failed")
+      self.onRegistrationFinished(error)
+    finally:
+      if not self.logic.runsInBackground:
+        qt.QApplication.restoreOverrideCursor()
 
-          self.logic.setCustomElastixBinDir(self.ui.customElastixBinDirSelector.currentPath)
-          self.logic.deleteTemporaryFiles = not self.ui.keepTemporaryFilesCheckBox.checked
-          self.logic.logStandardOutput = self.ui.showDetailedLogDuringExecutionCheckBox.checked
-          self.logic.registerVolumesUsingParameterNode(self._parameterNode)
-
-          # Apply computed transform to moving volume if output transform is computed to immediately see registration results
-          movingVolumeNode = self.ui.movingVolumeSelector.currentNode()
-          if self.ui.outputTransformSelector.currentNode() is not None \
-            and movingVolumeNode is not None \
-            and self.ui.outputVolumeSelector.currentNode() is None:
-            movingVolumeNode.SetAndObserveTransformNodeID(self.ui.outputTransformSelector.currentNode().GetID())
-        finally:
-          self.registrationInProgress = False
+  def onRegistrationFinished(self, error):
+    """The registration has ended, with None or with the error it ended in. Apply the computed
+    transform to the moving volume, so that the result is seen at once, when no output volume
+    was asked for."""
+    self.registrationInProgress = False
+    if error is None:
+      movingVolumeNode = self.ui.movingVolumeSelector.currentNode()
+      if self.ui.outputTransformSelector.currentNode() is not None \
+        and movingVolumeNode is not None \
+        and self.ui.outputVolumeSelector.currentNode() is None:
+        movingVolumeNode.SetAndObserveTransformNodeID(self.ui.outputTransformSelector.currentNode().GetID())
+    elif not isinstance(error, web_launcher.RegistrationCancelled):
+      slicer.util.errorDisplay(f"Failed to compute results.\n\n{error}")
     self.updateApplyButtonState()
 
   def updateApplyButtonState(self):
@@ -445,9 +459,10 @@ class ElastixLogic(ScriptedLoadableModuleLogic, PresetManagerLogic):
       if customPath == settings.value(self.customElastixBinDirSettingsKey):
         return
     settings.setValue(self.customElastixBinDirSettingsKey, customPath)
-    # Update elastix bin dir
+    # Update elastix bin dir (where the elastix program is run; in the background, it is not)
     self.elastixBinDir = None
-    self.getElastixBinDir()
+    if not self.runsInBackground:
+      self.getElastixBinDir()
 
   def getElastixEnv(self):
     """Create an environment for elastix where executables are added to the path"""
@@ -522,7 +537,23 @@ class ElastixLogic(ScriptedLoadableModuleLogic, PresetManagerLogic):
         self.addLog(processOutput)
       raise subprocess.CalledProcessError(return_code, "elastix")
 
-  def registerVolumesUsingParameterNode(self, parameterNode):
+  @property
+  def runsInBackground(self):
+    """Whether registerVolumes() returns before the registration is done and answers through its
+    onFinished callback - in a web browser, where elastix runs as WebAssembly in a worker of the
+    page (see ElastixLib.web_launcher) - rather than computing it before it returns, as on the desktop,
+    where it runs the elastix program."""
+    return web_launcher.available()
+
+  def cancel(self):
+    """Stop the registration: one in the background is ended; the elastix process of the desktop
+    is stopped when its next line of output is read."""
+    self.cancelRequested = True
+    launcher = getattr(self, "workerLauncher", None)
+    if launcher is not None:
+      launcher.cancel()
+
+  def registerVolumesUsingParameterNode(self, parameterNode, onFinished=None):
     presetId = parameterNode.GetParameter(self.REGISTRATION_PRESET_ID_PARAM)
     registrationPreset = self.getPresetByID(presetId)
     parameterFilenames = registrationPreset.getParameterFiles()
@@ -536,21 +567,34 @@ class ElastixLogic(ScriptedLoadableModuleLogic, PresetManagerLogic):
       fixedVolumeMaskNode=parameterNode.GetNodeReference(self.FIXED_VOLUME_MASK_REF),
       movingVolumeMaskNode=parameterNode.GetNodeReference(self.MOVING_VOLUME_MASK_REF),
       forceDisplacementFieldOutputTransform=slicer.util.toBool(parameterNode.GetParameter(self.FORCE_GRID_TRANSFORM_PARAM)),
-      initialTransformNode=parameterNode.GetNodeReference(self.INITIAL_TRANSFORM_REF))
+      initialTransformNode=parameterNode.GetNodeReference(self.INITIAL_TRANSFORM_REF),
+      onFinished=onFinished)
 
   def registerVolumes(self, fixedVolumeNode, movingVolumeNode, parameterFilenames=None, outputVolumeNode=None,
                       outputTransformNode=None, fixedVolumeMaskNode=None, movingVolumeMaskNode=None,
-                      forceDisplacementFieldOutputTransform=True, initialTransformNode=None):
+                      forceDisplacementFieldOutputTransform=True, initialTransformNode=None, onFinished=None):
+    """Register the moving volume to the fixed one, with the parameter files of a preset.
+
+    :param onFinished: in a web browser, where the registration is computed away from the page,
+      called with None when it is done or with the error it ended in; without it the call waits
+      where it can (see ElastixLib.web_launcher). On the desktop the call always waits, and onFinished
+      is called before it returns.
+    """
+
+    if parameterFilenames is None:
+      self.addLog(f"Using default registration preset with id '{self.DEFAULT_PRESET_ID}'")
+      defaultPreset = self.getPresetByID(self.DEFAULT_PRESET_ID)
+      parameterFilenames = defaultPreset.getParameterFiles()
+
+    if self.runsInBackground:
+      return web_launcher.registerVolumes(self, fixedVolumeNode, movingVolumeNode, parameterFilenames, outputVolumeNode,
+                                     outputTransformNode, fixedVolumeMaskNode, movingVolumeMaskNode, initialTransformNode,
+                                     onFinished=onFinished)
 
     self.isRunning = True
     tempDir = createTempDirectory()
 
     try:
-      if parameterFilenames is None:
-        self.addLog(f"Using default registration preset with id '{self.DEFAULT_PRESET_ID}'")
-        defaultPreset = self.getPresetByID(self.DEFAULT_PRESET_ID)
-        parameterFilenames = defaultPreset.getParameterFiles()
-
       self.cancelRequested = False
 
       self.addLog(f'Volume registration is started in working directory: {tempDir}')
@@ -589,6 +633,8 @@ class ElastixLogic(ScriptedLoadableModuleLogic, PresetManagerLogic):
         shutil.rmtree(tempDir)
       self.isRunning = False
       self.cancelRequested = False
+    if onFinished is not None:
+      onFinished(None)
 
   def _processElastixOutput(self, tempDir, parameterFilenames, fixedVolumeNode, movingVolumeNode, outputVolumeNode,
                             outputTransformNode, forceDisplacementFieldOutputTransform):
@@ -624,7 +670,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic, PresetManagerLogic):
       self.logProcessOutput(transformixProcess)
 
     if outputVolumeNode:
-      self._loadTransformedOutputVolume(outputVolumeNode, resultResampleDir)
+      self._loadTransformedOutputVolume(outputVolumeNode, os.path.join(resultResampleDir, "result.mhd"))
 
     if outputTransformNode is not None and not elastixTransformFileImported:
       outputTransformPath = os.path.join(resultResampleDir, "deformationField.mhd")
@@ -641,8 +687,7 @@ class ElastixLogic(ScriptedLoadableModuleLogic, PresetManagerLogic):
           slicer.vtkMRMLTransformNode.GetFixedNodeReferenceRole(), fixedVolumeNode.GetID()
         )
 
-  def _loadTransformedOutputVolume(self, outputVolumeNode, resultResampleDir):
-    outputVolumePath = os.path.join(resultResampleDir, "result.mhd")
+  def _loadTransformedOutputVolume(self, outputVolumeNode, outputVolumePath):
     try:
       loadedOutputVolumeNode = slicer.util.loadVolume(outputVolumePath)
       outputVolumeNode.SetAndObserveImageData(loadedOutputVolumeNode.GetImageData())

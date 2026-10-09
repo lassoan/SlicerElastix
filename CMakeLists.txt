@@ -28,6 +28,18 @@ mark_as_superbuild(GIT_EXECUTABLE)
 # SuperBuild setup
 option(${EXTENSION_NAME}_SUPERBUILD "Build ${EXTENSION_NAME} and the projects it depends on." ON)
 mark_as_advanced(${EXTENSION_NAME}_SUPERBUILD)
+
+# The elastix and transformix programs, built from source and run by the module. A build that
+# cannot run programs - the WebAssembly build of SlicerWeb, where the module registers with the
+# elastix of ITK-Wasm instead (see Elastix/ElastixLib/web_launcher.py) - builds the module alone.
+if(EMSCRIPTEN)
+  set(_build_elastix_default OFF)
+else()
+  set(_build_elastix_default ON)
+endif()
+option(${EXTENSION_NAME}_BUILD_ELASTIX "Build the elastix programs that the module runs." ${_build_elastix_default})
+mark_as_advanced(${EXTENSION_NAME}_BUILD_ELASTIX)
+mark_as_superbuild(${EXTENSION_NAME}_BUILD_ELASTIX)
 if(${EXTENSION_NAME}_SUPERBUILD)
   include("${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild.cmake")
   return()
@@ -41,7 +53,9 @@ add_subdirectory(Elastix)
 #-----------------------------------------------------------------------------
 # Install directory, install project name, install component, and install subdirectory.
 set(EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS)
-list(APPEND EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS "${elastix_DIR};elastix;Executables;/")
+if(${EXTENSION_NAME}_BUILD_ELASTIX)
+  list(APPEND EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS "${elastix_DIR};elastix;Executables;/")
+endif()
 set(${EXTENSION_NAME}_CPACK_INSTALL_CMAKE_PROJECTS "${EXTENSION_CPACK_INSTALL_CMAKE_PROJECTS}" CACHE STRING "List of external projects to install" FORCE)
 
 #-----------------------------------------------------------------------------

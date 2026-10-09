@@ -16,7 +16,10 @@ foreach(dep ${EXTENSION_DEPENDS})
 endforeach()
 
 set(proj ${SUPERBUILD_TOPLEVEL_PROJECT})
-set(${proj}_DEPENDS elastix)
+set(${proj}_DEPENDS)
+if(${EXTENSION_NAME}_BUILD_ELASTIX)
+  list(APPEND ${proj}_DEPENDS elastix)
+endif()
 
 ExternalProject_Include_Dependencies(${proj}
   PROJECT_VAR proj
