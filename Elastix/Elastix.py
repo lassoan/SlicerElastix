@@ -753,6 +753,8 @@ class ElastixTest(ScriptedLoadableModuleTest):
 
     import SampleData
     sampleDataLogic = SampleData.SampleDataLogic()
+    # Two MRI scans of the same patient's head, acquired at different times and positions:
+    # MRBrainTumor2 (moving) is registered to MRBrainTumor1 (fixed)
     self.tumor1 = sampleDataLogic.downloadMRBrainTumor1()
     self.tumor2 = sampleDataLogic.downloadMRBrainTumor2()
 
@@ -769,19 +771,110 @@ class ElastixTest(ScriptedLoadableModuleTest):
     self.test_Elastix_Explicit_Arguments()
     self.test_Elastix_ParameterNode()
 
+  #
+  # How well two volumes are aligned
+  #
+
+  @staticmethod
+  def normalizedMutualInformation(fixedVolumeNode, volumeNode):
+    """Normalized mutual information, (H(A) + H(B)) / H(A,B), of two volumes of the same voxel grid:
+    1 for unrelated images, higher the better they are aligned. Mutual information, as elastix
+    measures it, does not need the two scans to have the same intensities."""
+    import numpy as np
+    a = slicer.util.arrayFromVolume(fixedVolumeNode).astype(np.float64).ravel()
+    b = slicer.util.arrayFromVolume(volumeNode).astype(np.float64).ravel()
+    histogram, _, _ = np.histogram2d(a, b, bins=64)
+    joint = histogram / histogram.sum()
+
+    def entropy(p):
+      p = p[p > 0]
+      return -np.sum(p * np.log(p))
+
+    return (entropy(joint.sum(axis=1)) + entropy(joint.sum(axis=0))) / entropy(joint)
+
+  def resampleToFixed(self, movingVolumeNode, transformNode=None):
+    """The moving volume resampled into the voxel grid of the fixed volume (through a transform, if
+    one is given), as the registration's output volume is."""
+    inputVolume = movingVolumeNode
+    if transformNode is not None:
+      # The resampling module does not apply the input's parent transform: harden it on a copy
+      inputVolume = slicer.modules.volumes.logic().CloneVolume(slicer.mrmlScene, movingVolumeNode, "transformed")
+      inputVolume.SetAndObserveTransformNodeID(transformNode.GetID())
+      slicer.vtkSlicerTransformLogic().hardenTransform(inputVolume)
+    resampled = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeNode", "resampled")
+    parameters = {"inputVolume": inputVolume, "referenceVolume": self.tumor1, "outputVolume": resampled,
+                  "interpolationType": "linear"}
+    slicer.cli.runSync(slicer.modules.resamplescalarvectordwivolume, None, parameters)
+    if inputVolume is not movingVolumeNode:
+      slicer.mrmlScene.RemoveNode(inputVolume)
+    return resampled
+
+  def assertRegistered(self, outputVolumeNode=None, outputTransformNode=None):
+    """Check that MRBrainTumor2 was aligned to MRBrainTumor1: the output volume is in the fixed
+    volume's voxel grid and matches it far better than the moving volume did before registration,
+    and the output transform, applied to the moving volume, aligns it as well."""
+    import numpy as np
+    unregistered = self.resampleToFixed(self.tumor2)
+    before = self.normalizedMutualInformation(self.tumor1, unregistered)
+    slicer.mrmlScene.RemoveNode(unregistered)
+    logging.info(f"Normalized mutual information before registration: {before:.4f}")
+
+    if outputVolumeNode is not None:
+      self.assertIsNotNone(outputVolumeNode.GetImageData(), "No output volume")
+      self.assertEqual(outputVolumeNode.GetImageData().GetDimensions(), self.tumor1.GetImageData().GetDimensions())
+      fixedIjkToRas = vtk.vtkMatrix4x4()
+      self.tumor1.GetIJKToRASMatrix(fixedIjkToRas)
+      outputIjkToRas = vtk.vtkMatrix4x4()
+      outputVolumeNode.GetIJKToRASMatrix(outputIjkToRas)
+      for row in range(3):
+        for column in range(4):
+          self.assertAlmostEqual(outputIjkToRas.GetElement(row, column), fixedIjkToRas.GetElement(row, column), places=3)
+      after = self.normalizedMutualInformation(self.tumor1, outputVolumeNode)
+      logging.info(f"Normalized mutual information of the output volume: {after:.4f}")
+      self.assertGreater(after, before + self.MINIMUM_IMPROVEMENT,
+        f"The output volume is not aligned to the fixed volume (normalized mutual information {before:.4f} -> {after:.4f})")
+
+    if outputTransformNode is not None:
+      transformed = self.resampleToFixed(self.tumor2, outputTransformNode)
+      after = self.normalizedMutualInformation(self.tumor1, transformed)
+      slicer.mrmlScene.RemoveNode(transformed)
+      logging.info(f"Normalized mutual information of the moving volume through the output transform: {after:.4f}")
+      self.assertGreater(after, before + self.MINIMUM_IMPROVEMENT,
+        f"The output transform does not align the moving volume (normalized mutual information {before:.4f} -> {after:.4f})")
+
+  #: How much better aligned the volumes must be after registration (normalized mutual information)
+  MINIMUM_IMPROVEMENT = 0.05
+
+  #
+  # Registration
+  #
+
   def test_Elastix_Default_Registration_Preset(self):
     self.delayDisplay(f"Running test: test_Elastix_Default_Registration_Preset", msec=500)
     logic = ElastixLogic()
-    logic.registerVolumes(fixedVolumeNode=self.tumor1, movingVolumeNode=self.tumor2, outputVolumeNode=self.outputVolume)
+    outputTransform = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTransformNode", "Elastix transform")
+    logic.registerVolumes(fixedVolumeNode=self.tumor1, movingVolumeNode=self.tumor2, outputVolumeNode=self.outputVolume,
+                          outputTransformNode=outputTransform)
+    self.assertRegistered(self.outputVolume, outputTransform)
     self.delayDisplay('Test passed!')
 
   def test_Elastix_Explicit_Arguments(self):
     self.delayDisplay(f"Running test: test_Elastix_Explicit_Arguments", msec=500)
 
     logic = ElastixLogic()
-    parameterFilenames = logic.getRegistrationPresets()[0].getParameterFiles()
+    # The rigid preset, with a linear transform as output
+    parameterFilenames = logic.getPresetByID("default-rigid").getParameterFiles()
+    outputTransform = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLLinearTransformNode", "Elastix rigid transform")
     logic.registerVolumes(fixedVolumeNode=self.tumor1, movingVolumeNode=self.tumor2,
-                          parameterFilenames=parameterFilenames, outputVolumeNode=self.outputVolume)
+                          parameterFilenames=parameterFilenames, outputVolumeNode=self.outputVolume,
+                          outputTransformNode=outputTransform, forceDisplacementFieldOutputTransform=False)
+    self.assertRegistered(self.outputVolume, outputTransform)
+    # A rigid transform: rotation without scaling or shearing
+    import numpy as np
+    matrix = slicer.util.arrayFromTransformMatrix(outputTransform)
+    rotation = matrix[:3, :3]
+    np.testing.assert_allclose(rotation @ rotation.T, np.eye(3), atol=1e-4)
+    self.assertAlmostEqual(np.linalg.det(rotation), 1.0, places=4)
 
     self.delayDisplay('Test passed!')
 
@@ -797,6 +890,7 @@ class ElastixTest(ScriptedLoadableModuleTest):
     parameterNode.SetParameter(logic.REGISTRATION_PRESET_ID_PARAM, "default0")
 
     logic.registerVolumesUsingParameterNode(parameterNode)
+    self.assertRegistered(self.outputVolume)
 
     self.delayDisplay('Test passed!')
 
