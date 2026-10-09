@@ -26,8 +26,12 @@ if(NOT DEFINED ${proj}_DIR AND NOT ${CMAKE_PROJECT_NAME}_USE_SYSTEM_${proj})
   set(${proj}_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
   set(${proj}_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 
+  # The compiler flags of the extension, which elastix is given in place of its own defaults: without
+  # them MSVC builds elastix without /EHsc, with no C++ exceptions, and elastix's TOML parameter file
+  # parser (elastix >= 5.2) does not compile in toml++'s no-exceptions mode.
+  set(${proj}_cxx_flags "${ep_common_cxx_flags}")
   if (APPLE)
-    set(${proj}_cxx_flags "${ep_common_cxx_flags} -Wno-inconsistent-missing-override")
+    set(${proj}_cxx_flags "${${proj}_cxx_flags} -Wno-inconsistent-missing-override")
   endif()
 
   if(NOT DEFINED ITK_VERSION_MAJOR)
