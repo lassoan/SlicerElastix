@@ -9,6 +9,9 @@ set(MODULE_PYTHON_SCRIPTS
   ElastixLib/database.py
   ElastixLib/preset.py
   ElastixLib/manager.py
+  ElastixLib/web_launcher.py
+  ElastixLib/web_worker.py
+  ElastixLib/web_itk_transform_io.py
   ElastixLib/ElastixPresetSubjectHierarchyPlugin.py
   )
 
