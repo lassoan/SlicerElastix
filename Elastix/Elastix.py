@@ -5,9 +5,11 @@ import vtk, qt, slicer
 
 from ElastixLib.utils import *
 from ElastixLib.manager import PresetManagerLogic
+from ElastixLib.preset import getPresetDisplayName
 from ElastixLib import web_launcher
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
+from slicer.i18n import tr as _, translate
 import logging
 
 
@@ -25,12 +27,12 @@ class DatabaseNotFoundMessageBox(qt.QMessageBox):
     self.file_path = None
     self.text = text
 
-    self.addButton("Locate File", qt.QMessageBox.ActionRole)
+    self.addButton(_("Locate File"), qt.QMessageBox.ActionRole)
     self.buttonClicked.connect(lambda button: self.handle_button_click(button))
 
   def handle_button_click(self, button):
     if self.buttonRole(button) == qt.QMessageBox.ActionRole:
-      self.file_path = qt.QFileDialog.getOpenFileName(self, "Locate Elastix Database File", "", "XML files (*.xml)")
+      self.file_path = qt.QFileDialog.getOpenFileName(self, _("Locate Elastix Database File"), "", _("XML files (*.xml)"))
 
 
 class Elastix(ScriptedLoadableModule):
@@ -40,23 +42,23 @@ class Elastix(ScriptedLoadableModule):
 
   def __init__(self, parent):
     ScriptedLoadableModule.__init__(self, parent)
-    self.parent.title = "General Registration (Elastix)"
-    self.parent.categories = ["Registration"]
+    self.parent.title = _("General Registration (Elastix)")
+    self.parent.categories = [translate("qSlicerAbstractCoreModule", "Registration")]
     self.parent.associatedNodeTypes = ["vtkMRMLScriptedModuleNode"]
     self.parent.dependencies = []
     self.parent.contributors = ["Andras Lasso (PerkLab - Queen's University), Christian Herz (CHOP)"]
-    self.parent.helpText = """Align volumes based on image content using <a href="https://elastix.dev">Elastix medical image registration toolbox</a>.
+    self.parent.helpText = _("""Align volumes based on image content using <a href="https://elastix.dev">Elastix medical image registration toolbox</a>.
 <p>Registration troubleshooting: check "Keep temporary files" option before starting regsitration and click on "Show temp folder" to open the folder that contains detailed logs.
 <p>Edit registration parameters: open Advanced section, click "Show database folder", and edit presets. To add a new preset or modify registration phases, modify ElastixParameterSetDatabase.xml.
-See <a href="http://elastix.bigr.nl/wiki/index.php/Parameter_file_database">registration parameter set database</a> and <a href="https://elastix.dev/doxygen/index.html">Elastix documentation</a> for more details."""
-    self.parent.acknowledgementText = """
+See <a href="http://elastix.bigr.nl/wiki/index.php/Parameter_file_database">registration parameter set database</a> and <a href="https://elastix.dev/doxygen/index.html">Elastix documentation</a> for more details.""")
+    self.parent.acknowledgementText = _("""
 This module was originally developed by Andras Lasso (Queen's University, PerkLab)
 to serve as a frontend to Elastix medical image registration toolbox.
 If you use this module, please cite the following articles:
 <ul><li>S. Klein, M. Staring, K. Murphy, M.A. Viergever, J.P.W. Pluim, "<a href="https://elastix.dev/marius/publications/2010_j_TMI.php">elastix: a toolbox for intensity based medical image registration</a>", IEEE Transactions on Medical Imaging, vol. 29, no. 1, pp. 196 - 205, January 2010.</li>
 <li>D.P. Shamonin, E.E. Bron, B.P.F. Lelieveldt, M. Smits, S. Klein and M. Staring, "<a href="https://elastix.dev/marius/publications/2014_j_FNI.php">Fast Parallel Image Registration on CPU and GPU for Diagnostic Classification of Alzheimer's Disease</a>", Frontiers in Neuroinformatics, vol. 7, no. 50, pp. 1-15, January 2014.</li></ul>
 See more information about Elastix medical image registration toolbox at <a href="https://elastix.dev">https://elastix.dev</a>.
-"""
+""")
     slicer.app.connect("startupCompleted()", self.initializeElastixLib)
 
   def initializeElastixLib(self):
@@ -110,7 +112,11 @@ class ElastixWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     self.ui = slicer.util.childWidgetVariables(uiWidget)
 
     self.ui.parameterNodeSelector.addAttribute("vtkMRMLScriptedModuleNode", "ModuleName", self.moduleName)
-    self.ui.parameterNodeSelector.setNodeTypeLabel("ElastixParameters", "vtkMRMLScriptedModuleNode")
+    self.ui.parameterNodeSelector.setNodeTypeLabel(_("ElastixParameters"), "vtkMRMLScriptedModuleNode")
+    for selector in (self.ui.fixedVolumeSelector, self.ui.movingVolumeSelector, self.ui.outputVolumeSelector):
+      selector.setNodeTypeLabel(_("Volume"), "vtkMRMLScalarVolumeNode")
+    for selector in (self.ui.fixedVolumeMaskSelector, self.ui.movingVolumeMaskSelector):
+      selector.setNodeTypeLabel(_("Label map volume"), "vtkMRMLLabelMapVolumeNode")
 
     self.refreshRegistrationPresetList()
 
@@ -145,7 +151,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
 
   def onReload(self):
 
-    with slicer.util.tryWithErrorDisplay("Failed to reload the module."):
+    with slicer.util.tryWithErrorDisplay(_("Failed to reload the module.")):
 
       packageName='ElastixLib'
       submoduleNames=['preset', 'utils', 'database', 'manager', 'ElastixPresetSubjectHierarchyPlugin']
@@ -312,16 +318,16 @@ class ElastixWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
         and self.ui.outputVolumeSelector.currentNode() is None:
         movingVolumeNode.SetAndObserveTransformNodeID(self.ui.outputTransformSelector.currentNode().GetID())
     elif not isinstance(error, web_launcher.RegistrationCancelled):
-      slicer.util.errorDisplay(f"Failed to compute results.\n\n{error}")
+      slicer.util.errorDisplay(_("Failed to compute results.\n\n{error}").format(error=error))
     self.updateApplyButtonState()
 
   def updateApplyButtonState(self):
     if self.registrationInProgress or self.logic.isRunning:
       if self.logic.cancelRequested:
-        self.ui.applyButton.text = "Cancelling..."
+        self.ui.applyButton.text = _("Cancelling...")
         self.ui.applyButton.enabled = False
       else:
-        self.ui.applyButton.text = "Cancel"
+        self.ui.applyButton.text = _("Cancel")
         self.ui.applyButton.enabled = True
     else:
       fixedVolumeNode = self._parameterNode.GetNodeReference(self.logic.FIXED_VOLUME_REF)
@@ -329,16 +335,16 @@ class ElastixWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
       outputVolumeNode = self._parameterNode.GetNodeReference(self.logic.OUTPUT_VOLUME_REF)
       outputTransformNode = self._parameterNode.GetNodeReference(self.logic.OUTPUT_TRANSFORM_REF)
       if not fixedVolumeNode or not movingVolumeNode:
-        self.ui.applyButton.text = "Select fixed and moving volumes"
+        self.ui.applyButton.text = _("Select fixed and moving volumes")
         self.ui.applyButton.enabled = False
       elif fixedVolumeNode == movingVolumeNode:
-        self.ui.applyButton.text = "Fixed and moving volume must not be the same"
+        self.ui.applyButton.text = _("Fixed and moving volume must not be the same")
         self.ui.applyButton.enabled = False
       elif not outputVolumeNode and not outputTransformNode:
-        self.ui.applyButton.text = "Select an output volume and/or output transform"
+        self.ui.applyButton.text = _("Select an output volume and/or output transform")
         self.ui.applyButton.enabled = False
       else:
-        self.ui.applyButton.text = "Apply"
+        self.ui.applyButton.text = _("Apply")
         self.ui.applyButton.enabled = True
 
   def addLog(self, text):
@@ -356,7 +362,7 @@ class ElastixWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     wasBlocked = self.ui.registrationPresetSelector.blockSignals(True)
     self.ui.registrationPresetSelector.clear()
     for preset in self.logic.getRegistrationPresets(force_refresh=True):
-      self.ui.registrationPresetSelector.addItem(preset.getName())
+      self.ui.registrationPresetSelector.addItem(getPresetDisplayName(preset))
     self.ui.registrationPresetSelector.blockSignals(wasBlocked)
 
 
