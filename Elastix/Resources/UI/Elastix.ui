@@ -47,7 +47,7 @@
          <stringlist notr="true"/>
         </property>
         <property name="baseName">
-         <string>ElastixParameters</string>
+         <string notr="true">ElastixParameters</string>
         </property>
         <property name="renameEnabled">
          <bool>true</bool>
@@ -533,7 +533,7 @@
          <set>ctkPathLineEdit::Dirs|ctkPathLineEdit::Executable|ctkPathLineEdit::NoDot|ctkPathLineEdit::NoDotDot|ctkPathLineEdit::Readable</set>
         </property>
         <property name="settingKey">
-         <string>Elastix/CustomElastixPath</string>
+         <string notr="true">Elastix/CustomElastixPath</string>
         </property>
        </widget>
       </item>

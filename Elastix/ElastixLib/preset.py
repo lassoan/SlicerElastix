@@ -5,6 +5,7 @@ from pathlib import Path
 from ElastixLib.utils import createTempDirectory
 
 import slicer
+from slicer.i18n import tr as _
 from typing import List, Union, Dict
 
 # for caching instead of persistently creating new preset for each node in the scene
@@ -304,10 +305,20 @@ def canDelete(preset: Preset):
 
 def getPresetType(preset: Preset):
   if isinstance(preset, UserPreset):
-    return "user preset"
+    return _("user preset")
   elif isinstance(preset, InScenePreset):
-    return "stored in scene"
+    return _("stored in scene")
   elif isinstance(preset, Preset):
-    return "built-in preset"
+    return _("built-in preset")
   else:
-    return "unknown"
+    return _("unknown")
+
+
+def getPresetDisplayName(preset: Preset):
+  """Translate default preset labels without changing preset data or identifiers."""
+  if type(preset) is Preset:
+    if preset.getID() == "default0":
+      return _("generic (all)")
+    if preset.getID() == "default-rigid":
+      return _("generic rigid (all)")
+  return preset.getName()

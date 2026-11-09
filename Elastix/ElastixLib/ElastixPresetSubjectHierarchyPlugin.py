@@ -1,5 +1,6 @@
 import qt, ctk, slicer
 from AbstractScriptedSubjectHierarchyPlugin import *
+from slicer.i18n import tr as _
 
 
 class ElastixPresetSubjectHierarchyPlugin(AbstractScriptedSubjectHierarchyPlugin):
@@ -41,4 +42,4 @@ class ElastixPresetSubjectHierarchyPlugin(AbstractScriptedSubjectHierarchyPlugin
     return qt.QIcon()
 
   def tooltip(self, itemID):
-    return "Elastix preset"
+    return _("Elastix preset")

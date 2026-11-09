@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
+ <class>ElastixPresetManager</class>
  <widget class="QDialog" name="Dialog">
   <property name="geometry">
    <rect>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Preset Manager</string>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -381,7 +381,7 @@
                <string>move parameter file up</string>
               </property>
               <property name="text">
-               <string>▲</string>
+               <string notr="true">▲</string>
               </property>
              </widget>
             </item>
@@ -403,7 +403,7 @@
                <string>move parameter file down</string>
               </property>
               <property name="text">
-               <string>▼</string>
+               <string notr="true">▼</string>
               </property>
              </widget>
             </item>

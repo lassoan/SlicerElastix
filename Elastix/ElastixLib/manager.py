@@ -2,6 +2,7 @@ import logging
 import os
 import qt
 import slicer
+from slicer.i18n import tr as _
 from typing import Callable
 from ElastixLib.utils import getContentSuffixes
 from ElastixLib.database import BuiltinElastixDatabase, UserElastixDataBase, InSceneElastixDatabase
@@ -227,12 +228,12 @@ class PresetManagerDialog:
     wasBlocked = self.ui.presetSelector.blockSignals(True)
     self.ui.presetSelector.clear()
     for preset in self.manager.getRegistrationPresets(force_refresh=True):
-      self.ui.presetSelector.addItem(preset.getName())
+      self.ui.presetSelector.addItem(getPresetDisplayName(preset))
     self.ui.presetSelector.blockSignals(wasBlocked)
     self.updateGUI()
 
   def refreshCurrentPresetName(self):
-    self.ui.presetSelector.setItemText(self.ui.presetSelector.currentIndex, self._currentPreset.getName())
+    self.ui.presetSelector.setItemText(self.ui.presetSelector.currentIndex, getPresetDisplayName(self._currentPreset))
 
   def displayTextForIndex(self):
     rowIndex = self.getSelectedRow()
@@ -281,17 +282,16 @@ class PresetManagerDialog:
         self.ui.presetSelector.currentIndex = idx
 
   def onDeletePresetButton(self):
-      if slicer.util.confirmYesNoDisplay("You are about to delete a preset. This action cannot be reverted. "
-                                         "Do you want to proceed?", parent=self.widget):
+      if slicer.util.confirmYesNoDisplay(_("You are about to delete a preset. This action cannot be reverted. Do you want to proceed?"), parent=self.widget):
         self.manager.deletePreset(self._currentPreset)
         self.refreshRegistrationPresetList()
         self.selectLastPreset()
 
   def onAddButton(self):
     w = self.ui.listWidget
-    text = qt.QInputDialog.getText(None, "Add registration section/step", "Name:")
+    text = qt.QInputDialog.getText(None, _("Add registration section/step"), _("Name:"))
     while self._currentPreset.hasParameterSection(text):
-      text = qt.QInputDialog.getText(None, "Add registration section/step", "Name (unique name): ")
+      text = qt.QInputDialog.getText(None, _("Add registration section/step"), _("Name (unique name): "))
     if text:
       w.addItem(text)
       self._currentPreset.addParameterSection(text, "")
@@ -369,7 +369,7 @@ class PresetManagerDialog:
 
   def _populateForm(self, preset):
     self.ui.presetTypeLabel.text = getPresetType(preset)
-    self.ui.clonePresetButton.text = "Create editable copy" if not isWritable(preset) else "Make a copy"
+    self.ui.clonePresetButton.text = _("Create editable copy") if not isWritable(preset) else _("Make a copy")
     with BlockSignals([self.ui.modalityBox, self.ui.contentBox, self.ui.descriptionBox,
                        self.ui.publicationsBox]):
       self.ui.idLabel.toolTip = "" if not preset else f"ID: {preset.getID()}"
